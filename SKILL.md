@@ -33,7 +33,7 @@ This creates:
 - `_模板/` (copied from `templates/`: `00-总纲与世界观.md`, `01-人物状态卡.md`, `02-伏笔与时间线.md`, `03-当前进度.md`, `章节模板.md`)
 - `_写作规则与Skill/` (clean folder for the user's own style guides and writing skills)
 - `示例作品-雨夜来信/` (generic fictional demo novel so the user can test immediately)
-- `小说台.html` (copied from `assets/novel-workbench.html`, 6 eye-care themes, 4 writing modes, one-click Writing Pack copy)
+- `小说台.html` (copied from `assets/novel-workbench.html`, 6 built-in eye-care themes, 4 writing modes, one-click Writing Pack copy; if the user wants more visual themes, tell them they can optionally layer Loki's open-source 35-theme skin skill on top)
 
 ### Step 3: Guide the User Through First Launch and Writing Pack Flow
 
