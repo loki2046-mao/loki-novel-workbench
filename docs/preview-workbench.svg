@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="115%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#2c221b" flood-opacity="0.14"/>
+    </filter>
+    <filter id="softBlur" x="-5%" y="-5%" width="110%" height="110%">
+      <feGaussianBlur stdDeviation="2.2"/>
+    </filter>
+  </defs>
+  <!-- Background Canvas -->
+  <rect width="1200" height="720" rx="20" fill="#efe9dd"/>
+
+  <!-- App Window -->
+  <g filter="url(#shadow)">
+    <rect x="36" y="28" width="1128" height="664" rx="16" fill="#f7f3ea" stroke="#d8cfc0" stroke-width="1.5"/>
+
+    <!-- Topbar -->
+    <rect x="36" y="28" width="1128" height="54" rx="16" fill="#ebe4d5"/>
+    <rect x="36" y="66" width="1128" height="16" fill="#ebe4d5"/>
+    <line x1="36" y1="82" x2="1164" y2="82" stroke="#d8cfc0" stroke-width="1"/>
+
+    <!-- Traffic lights -->
+    <circle cx="64" cy="55" r="6" fill="#e06c65"/>
+    <circle cx="84" cy="55" r="6" fill="#e5b567"/>
+    <circle cx="104" cy="55" r="6" fill="#7fb069"/>
+
+    <!-- Brand -->
+    <rect x="128" y="42" width="26" height="26" rx="7" fill="#b8623c"/>
+    <text x="141" y="60" text-anchor="middle" fill="#ffffff" font-size="13" font-weight="700">L</text>
+    <text x="164" y="60" fill="#2c221b" font-size="14.5" font-weight="700">Loki Novel Workbench</text>
+    <rect x="330" y="44" width="96" height="22" rx="11" fill="#e2d9c8"/>
+    <text x="378" y="59" text-anchor="middle" fill="#6b5a4d" font-size="11">纯本地 · 零 API</text>
+
+    <!-- Mode Bar -->
+    <rect x="488" y="40" width="290" height="30" rx="8" fill="#e2d9c8"/>
+    <rect x="492" y="43" width="66" height="24" rx="6" fill="#fbf8f1"/>
+    <text x="525" y="59" text-anchor="middle" fill="#b8623c" font-size="12" font-weight="700">工作台</text>
+    <text x="594" y="59" text-anchor="middle" fill="#6b5a4d" font-size="12">双栏对照</text>
+    <text x="668" y="59" text-anchor="middle" fill="#6b5a4d" font-size="12">专注写作</text>
+    <text x="740" y="59" text-anchor="middle" fill="#6b5a4d" font-size="12">沉浸预览</text>
+
+    <!-- Top Right Buttons -->
+    <rect x="920" y="42" width="84" height="26" rx="7" fill="#b8623c"/>
+    <text x="962" y="59" text-anchor="middle" fill="#ffffff" font-size="12" font-weight="600">打开目录</text>
+    <rect x="1014" y="42" width="132" height="26" rx="7" fill="#fbf8f1" stroke="#d8cfc0"/>
+    <text x="1080" y="59" text-anchor="middle" fill="#2c221b" font-size="12">护眼主题 · 暖纸</text>
+
+    <!-- Left Sidebar -->
+    <rect x="36" y="82" width="236" height="580" fill="#eee7d9"/>
+    <line x1="272" y1="82" x2="272" y2="662" stroke="#d8cfc0" stroke-width="1"/>
+
+    <!-- Book Selector -->
+    <rect x="52" y="98" width="170" height="32" rx="7" fill="#fbf8f1" stroke="#d8cfc0"/>
+    <text x="64" y="119" fill="#2c221b" font-size="12.5" font-weight="600">示例作品-雨夜来信</text>
+    <rect x="228" y="98" width="28" height="32" rx="7" fill="#fbf8f1" stroke="#d8cfc0"/>
+    <text x="242" y="119" text-anchor="middle" fill="#2c221b" font-size="15" font-weight="700">+</text>
+
+    <!-- Core Docs -->
+    <text x="56" y="156" fill="#7a6859" font-size="11" font-weight="700">核心设定与大纲</text>
+    <text x="60" y="182" fill="#3a2f27" font-size="12.5">00-总纲与世界观</text>
+    <text x="248" y="182" text-anchor="end" fill="#8b7a6b" font-size="11">312字</text>
+    <text x="60" y="210" fill="#3a2f27" font-size="12.5">01-人物状态卡</text>
+    <text x="248" y="210" text-anchor="end" fill="#8b7a6b" font-size="11">248字</text>
+    <text x="60" y="238" fill="#3a2f27" font-size="12.5">02-伏笔与时间线</text>
+    <text x="248" y="238" text-anchor="end" fill="#8b7a6b" font-size="11">165字</text>
+    <text x="60" y="266" fill="#3a2f27" font-size="12.5">03-当前进度</text>
+    <text x="248" y="266" text-anchor="end" fill="#8b7a6b" font-size="11">190字</text>
+
+    <!-- Chapters -->
+    <text x="56" y="308" fill="#7a6859" font-size="11" font-weight="700">正文目录</text>
+    <rect x="48" y="320" width="212" height="32" rx="7" fill="#e6d7c6" stroke="#b8623c" stroke-opacity="0.45"/>
+    <text x="60" y="340" fill="#9a4b29" font-size="12.5" font-weight="700">第01章-停电的钟表店</text>
+    <text x="248" y="340" text-anchor="end" fill="#9a4b29" font-size="11">284字</text>
+    <text x="60" y="372" fill="#6b5a4d" font-size="12">+ 新建下一章</text>
+
+    <!-- Theme Swatches preview at bottom left -->
+    <text x="56" y="592" fill="#7a6859" font-size="11" font-weight="700">内置护眼皮肤</text>
+    <circle cx="68" cy="616" r="10" fill="#f4efe4" stroke="#b8623c" stroke-width="2"/>
+    <circle cx="96" cy="616" r="10" fill="#e3edcd" stroke="#2d6a4f" stroke-width="1.2"/>
+    <circle cx="124" cy="616" r="10" fill="#eceff4" stroke="#3b6ea5" stroke-width="1.2"/>
+    <circle cx="152" cy="616" r="10" fill="#15120f" stroke="#e29b53" stroke-width="1.2"/>
+    <circle cx="180" cy="616" r="10" fill="#0f172a" stroke="#60a5fa" stroke-width="1.2"/>
+    <circle cx="208" cy="616" r="10" fill="#0f1714" stroke="#52b788" stroke-width="1.2"/>
+
+    <!-- Center Editor Pane -->
+    <rect x="292" y="100" width="566" height="562" rx="12" fill="#fdfbf6" stroke="#e2d9c8"/>
+    <text x="328" y="142" fill="#2c221b" font-size="20" font-weight="700">第 1 章 停电的钟表店</text>
+    <line x1="328" y1="158" x2="822" y2="158" stroke="#ebe4d5" stroke-width="1"/>
+
+    <g filter="url(#softBlur)" opacity="0.78">
+      <text x="328" y="196" fill="#2c221b" font-size="14.5">九点半刚过，整条老街的灯同时暗了下去。</text>
+      <text x="328" y="234" fill="#2c221b" font-size="14.5">林安手里的镊子停在半空，没急着放下，先凭着记忆把刚拆下来的</text>
+      <text x="328" y="262" fill="#2c221b" font-size="14.5">那颗游丝螺丝挪进左侧磁碟里。窗外的雨敲在铁皮雨棚上，声音闷</text>
+      <text x="328" y="290" fill="#2c221b" font-size="14.5">成一片，玻璃上全是顺着往下淌的水线。</text>
+      <text x="328" y="332" fill="#2c221b" font-size="14.5">他摸出柜台底下的充电台灯按下开关，暖黄的光只照亮了工作台那</text>
+      <text x="328" y="360" fill="#2c221b" font-size="14.5">一小块地方。就在这时候，门缝底下传来一声很轻的摩擦声。</text>
+      <text x="328" y="402" fill="#2c221b" font-size="14.5">林安抬头看过去，卷帘门没完全拉死的那两寸空隙里，被塞进来一</text>
+      <text x="328" y="430" fill="#2c221b" font-size="14.5">个边角发软的牛皮纸信封。他走过去捡起来，拆开封口，先滑出来</text>
+      <text x="328" y="458" fill="#2c221b" font-size="14.5">的是一张泛黄的旧当票，日期印在十年前的秋天……</text>
+    </g>
+
+    <!-- Right Panel: Zero-API AI Pack & Local CLI -->
+    <rect x="876" y="82" width="288" height="580" fill="#f3ede1"/>
+    <line x1="876" y1="82" x2="876" y2="662" stroke="#d8cfc0" stroke-width="1"/>
+
+    <!-- Card 1: Copy Writing Pack -->
+    <rect x="892" y="100" width="256" height="196" rx="11" fill="#fbf8f1" stroke="#ded5c5"/>
+    <text x="908" y="126" fill="#7a6859" font-size="12" font-weight="700">零 API 写作包（适配任意 Agent）</text>
+    <rect x="908" y="142" width="224" height="32" rx="7" fill="#b8623c"/>
+    <text x="1020" y="162" text-anchor="middle" fill="#ffffff" font-size="12.5" font-weight="600">打包：生成下一章细纲</text>
+    <rect x="908" y="182" width="224" height="32" rx="7" fill="#f4efe4" stroke="#d8cfc0"/>
+    <text x="1020" y="202" text-anchor="middle" fill="#2c221b" font-size="12.5">打包：按细纲续写正文</text>
+    <rect x="908" y="222" width="224" height="32" rx="7" fill="#f4efe4" stroke="#d8cfc0"/>
+    <text x="1020" y="242" text-anchor="middle" fill="#2c221b" font-size="12.5">打包：润色当前章节</text>
+    <text x="908" y="278" fill="#8b7a6b" font-size="11">自动带上总纲 + 人物卡 + 伏笔 + 自定义 Skill</text>
+
+    <!-- Card 2: Local CLI Bridge -->
+    <rect x="892" y="312" width="256" height="176" rx="11" fill="#fbf8f1" stroke="#ded5c5"/>
+    <text x="908" y="338" fill="#7a6859" font-size="12" font-weight="700">本机 CLI 直连（Level 2 可选）</text>
+    <rect x="908" y="354" width="70" height="24" rx="12" fill="#e3edcd"/>
+    <text x="943" y="370" text-anchor="middle" fill="#2d6a4f" font-size="11" font-weight="700">Codex</text>
+    <rect x="985" y="354" width="76" height="24" rx="12" fill="#e3edcd"/>
+    <text x="1023" y="370" text-anchor="middle" fill="#2d6a4f" font-size="11" font-weight="700">Antigravity</text>
+    <rect x="1068" y="354" width="64" height="24" rx="12" fill="#e3edcd"/>
+    <text x="1100" y="370" text-anchor="middle" fill="#2d6a4f" font-size="11" font-weight="700">Cola</text>
+    <text x="908" y="406" fill="#5d4c3e" font-size="11.5">• 仅监听 127.0.0.1 本机回环</text>
+    <text x="908" y="430" fill="#5d4c3e" font-size="11.5">• 复用现有订阅额度，零 API Key</text>
+    <text x="908" y="454" fill="#5d4c3e" font-size="11.5">• 结果先入预览区，确认后再写入</text>
+
+    <!-- Card 3: Stats -->
+    <rect x="892" y="504" width="256" height="118" rx="11" fill="#fbf8f1" stroke="#ded5c5"/>
+    <text x="908" y="530" fill="#7a6859" font-size="12" font-weight="700">本地书架数据</text>
+    <text x="908" y="560" fill="#2c221b" font-size="12.5">格式：纯本地 Markdown（兼容 Obsidian）</text>
+    <text x="908" y="586" fill="#2c221b" font-size="12.5">自动回写：人物状态 + 伏笔账本 + 进度</text>
+    <text x="908" y="610" fill="#b8623c" font-size="11.5" font-weight="600">所有文本 100% 留在你的电脑本地</text>
+
+    <!-- Bottom Statusbar -->
+    <rect x="36" y="662" width="1128" height="30" rx="0" fill="#ebe4d5"/>
+    <line x1="36" y1="662" x2="1164" y2="662" stroke="#d8cfc0" stroke-width="1"/>
+    <text x="56" y="681" fill="#7a6859" font-size="11.5">皮肤：暖羊皮纸 · 赤铜</text>
+    <text x="600" y="681" text-anchor="middle" fill="#7a6859" font-size="11.5">第 1 章 · 284 字 · 已同步本地文件</text>
+    <text x="1144" y="681" text-anchor="end" fill="#7a6859" font-size="11.5">Cmd+S 即时保存</text>
+  </g>
+</svg>

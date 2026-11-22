@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="parchment">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Loki Novel Workbench · 纯本地零 API 小说写作台</title>
+  <style>
+    :root {
+      --editor-size: 16px;
+      --editor-lh: 1.95;
+      --editor-width: 760px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    [data-theme="parchment"] {
+      --bg-canvas: #f4efe4; --bg-surface: #ebe4d5; --bg-elevated: #fbf8f1; --bg-paper: #fdfbf6; --bg-soft: #e3dac8;
+      --text-primary: #2c221b; --text-secondary: #4c3d32; --text-muted: #756355;
+      --accent: #b8623c; --accent-ink: #ffffff; --border: rgba(62,47,35,0.14);
+    }
+    [data-theme="sage"] {
+      --bg-canvas: #e3edcd; --bg-surface: #edf4de; --bg-elevated: #f5f9ec; --bg-paper: #f7faf0; --bg-soft: #d7e5bc;
+      --text-primary: #1f2e22; --text-secondary: #354b39; --text-muted: #526a56;
+      --accent: #2d6a4f; --accent-ink: #ffffff; --border: rgba(31,46,34,0.14);
+    }
+    [data-theme="nord"] {
+      --bg-canvas: #eceff4; --bg-surface: #e5e9f0; --bg-elevated: #f7f9fc; --bg-paper: #ffffff; --bg-soft: #d8dee9;
+      --text-primary: #2e3440; --text-secondary: #434c5e; --text-muted: #5c6678;
+      --accent: #3b6ea5; --accent-ink: #ffffff; --border: rgba(46,52,64,0.14);
+    }
+    [data-theme="amber-night"] {
+      --bg-canvas: #15120f; --bg-surface: #1c1814; --bg-elevated: #231e19; --bg-paper: #1f1b16; --bg-soft: #2b241d;
+      --text-primary: #ece2d4; --text-secondary: #c9baa6; --text-muted: #9f8f7b;
+      --accent: #e29b53; --accent-ink: #1a130c; --border: rgba(245,222,195,0.14);
+    }
+    [data-theme="midnight"] {
+      --bg-canvas: #0f172a; --bg-surface: #162036; --bg-elevated: #1c2944; --bg-paper: #17233b; --bg-soft: #233354;
+      --text-primary: #e2e8f0; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
+      --accent: #60a5fa; --accent-ink: #0b1220; --border: rgba(148,163,184,0.16);
+    }
+    [data-theme="forest-night"] {
+      --bg-canvas: #0f1714; --bg-surface: #15211c; --bg-elevated: #1b2b25; --bg-paper: #16241f; --bg-soft: #23372f;
+      --text-primary: #dcebe3; --text-secondary: #b4d1c2; --text-muted: #88a898;
+      --accent: #52b788; --accent-ink: #081710; --border: rgba(163,217,191,0.14);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; }
+    .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    .topbar {
+      height: 52px; padding: 0 16px; background: var(--bg-surface); border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0;
+    }
+    .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14.5px; }
+    .logo { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 13px; }
+    .pill { font-size: 11.5px; padding: 3px 9px; border-radius: 999px; background: var(--bg-soft); color: var(--text-secondary); }
+    .mode-bar { display: inline-flex; gap: 3px; background: var(--bg-soft); padding: 3px; border-radius: 9px; }
+    .mode-bar button { border: none; background: transparent; color: var(--text-muted); padding: 5px 10px; font-size: 12.5px; border-radius: 6px; cursor: pointer; }
+    .mode-bar button.active { background: var(--bg-elevated); color: var(--accent); font-weight: 700; }
+    .btn {
+      font-family: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--border);
+      background: var(--bg-elevated); color: var(--text-primary); padding: 6px 11px; border-radius: 8px;
+    }
+    .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    select.ctrl { padding: 6px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); font-size: 12.5px; outline: none; }
+
+    .workspace { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+    .sidebar { width: 264px; flex-shrink: 0; background: var(--bg-surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+    .sidebar-top { padding: 10px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 10px 8px 24px; }
+    .sec-title { font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 8px 8px 5px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-btn {
+      width: 100%; text-align: left; border: 1px solid transparent; background: transparent; color: var(--text-primary);
+      padding: 7px 9px; border-radius: 7px; font-size: 12.8px; display: flex; justify-content: space-between; cursor: pointer; margin-bottom: 2px;
+    }
+    .nav-btn:hover { background: var(--bg-soft); }
+    .nav-btn.active { background: var(--bg-elevated); color: var(--accent); font-weight: 600; border-color: var(--border); }
+    .nav-meta { font-size: 11px; color: var(--text-muted); margin-left: 6px; flex-shrink: 0; }
+
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .doc-bar { padding: 8px 16px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .panes { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+    .pane { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 22px 48px; }
+    .pane-ref { border-right: 1px solid var(--border); }
+    .paper { max-width: var(--editor-width); margin: 0 auto; background: var(--bg-paper); border: 1px solid var(--border); border-radius: 12px; min-height: 100%; }
+    textarea.editor {
+      width: 100%; min-height: 78vh; border: none; outline: none; resize: none; background: transparent; color: var(--text-primary);
+      padding: 28px 34px; font-family: var(--font-sans); font-size: var(--editor-size); line-height: var(--editor-lh);
+    }
+    .prose { padding: 28px 36px; font-size: var(--editor-size); line-height: var(--editor-lh); }
+    .prose h1, .prose h2 { margin-top: 1.2em; }
+    .prose blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--bg-soft); border-radius: 0 8px 8px 0; }
+
+    .rightbar { width: 292px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+    .card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 11px; padding: 12px; }
+    .card h4 { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); }
+    .stack { display: flex; flex-direction: column; gap: 7px; }
+    .stack button { width: 100%; text-align: left; }
+
+    .empty { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .empty-card { max-width: 520px; width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; }
+    .statusbar { height: 28px; padding: 0 14px; background: var(--bg-surface); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); }
+    .hidden { display: none !important; }
+    body.mode-zen .sidebar, body.mode-zen .rightbar, body.mode-zen .topbar, body.mode-zen .doc-bar { display: none; }
+    body.mode-reader .rightbar { display: none; }
+    .zen-pill { position: fixed; top: 14px; right: 18px; z-index: 40; display: none; gap: 8px; align-items: center; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; }
+    body.mode-zen .zen-pill { display: inline-flex; }
+    .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--text-primary); color: var(--bg-canvas); padding: 8px 15px; border-radius: 8px; font-size: 12.5px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="zen-pill">
+      <span id="zenWords" style="color:var(--accent);font-weight:700;">0 字</span>
+      <button id="btnZenSave" class="btn">保存</button>
+      <button id="btnExitZen" class="btn primary">退出专注 (Esc)</button>
+    </div>
+
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo">L</div>
+        <span>Loki Novel Workbench</span>
+        <span class="pill" id="dirBadge">未连接书架</span>
+      </div>
+      <div class="mode-bar" id="modeBar">
+        <button data-mode="studio" class="active">工作台</button>
+        <button data-mode="split">双栏对照</button>
+        <button data-mode="zen">专注写作</button>
+        <button data-mode="reader">沉浸预览</button>
+      </div>
+      <div style="display:flex;align-items:center;gap:7px;">
+        <select id="themeSelect" class="ctrl" title="切换护眼皮肤">
+          <option value="parchment">暖羊皮纸 · 赤铜</option>
+          <option value="sage">豆沙护眼绿</option>
+          <option value="nord">云雾冷灰</option>
+          <option value="amber-night">深夜琥珀</option>
+          <option value="midnight">午夜蓝墨</option>
+          <option value="forest-night">森林苔夜</option>
+        </select>
+        <button id="btnOpenDir" class="btn primary">打开小说目录</button>
+        <button id="btnRefresh" class="btn" disabled>刷新</button>
+      </div>
+    </header>
+
+    <div id="emptyState" class="empty">
+      <div class="empty-card">
+        <h2 style="margin:0 0 10px;">Loki Novel Workbench</h2>
+        <p style="color:var(--text-secondary);line-height:1.75;margin:0 0 20px;">
+          纯本地 Markdown 驱动 · 零 API Key · 兼容 Obsidian。<br>
+          选择你的本地小说目录，即可开始管理设定、大纲、伏笔与章节正文，一键打包上下文交给手头任意 AI Agent 续写。
+        </p>
+        <div id="recentBox" class="hidden" style="margin-bottom:16px;"></div>
+        <button id="btnOpenBig" class="btn primary" style="padding:10px 22px;font-size:14px;">选择本地小说文件夹</button>
+      </div>
+    </div>
+
+    <div id="workspace" class="workspace hidden">
+      <aside class="sidebar">
+        <div class="sidebar-top">
+          <select id="bookSelect" class="ctrl" style="flex:1;min-width:0;"></select>
+          <button id="btnNewBook" class="btn" title="新建作品">+</button>
+        </div>
+        <div class="sidebar-scroll">
+          <div class="sec-title"><span>核心设定与大纲</span></div>
+          <div id="coreNav"></div>
+          <div class="sec-title" style="margin-top:10px;"><span>正文目录</span><button id="btnNewChap" class="btn" style="padding:2px 7px;font-size:11px;">+ 新章</button></div>
+          <div id="chapNav"></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="doc-bar">
+          <strong id="docTitle">请选择左侧文档</strong>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <select id="refSelect" class="ctrl hidden" title="左侧对照参考文档"></select>
+            <button id="btnSave" class="btn primary" disabled>保存 ⌘S</button>
+          </div>
+        </div>
+        <div class="panes">
+          <div id="paneRef" class="pane pane-ref hidden"><div class="paper"><article id="refProse" class="prose"></article></div></div>
+          <div id="paneEdit" class="pane"><div class="paper"><textarea id="editorArea" class="editor" spellcheck="false" placeholder="在这里写作..."></textarea></div></div>
+          <div id="paneRead" class="pane hidden"><div class="paper"><article id="readProse" class="prose"></article></div></div>
+        </div>
+      </main>
+
+      <aside class="rightbar">
+        <div class="card">
+          <h4>⚡ 零 API 写作包（适配任意 Agent）</h4>
+          <div class="stack">
+            <button id="btnPackOutline" class="btn primary">① 打包：生成下一章细纲</button>
+            <button id="btnPackContinue" class="btn">② 打包：按细纲续写正文</button>
+            <button id="btnPackPolish" class="btn">③ 打包：润色当前章节</button>
+            <button id="btnPackSync" class="btn">④ 打包：写后状态回写</button>
+          </div>
+          <p style="margin:9px 0 0;font-size:11.5px;color:var(--text-muted);line-height:1.55;">
+            自动打包本书总纲、人物状态卡、伏笔时间线、当前进度、上一章结尾以及 <code>_写作规则与Skill</code>，复制后直接发给你的订阅制 AI 即可。
+          </p>
+        </div>
+        <div class="card">
+          <h4>Aa 排版微调</h4>
+          <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px;">字号：<span id="lblSize">16</span>px</label>
+          <input id="rangeSize" type="range" min="14" max="22" value="16" style="width:100%;" />
+          <label style="display:block;font-size:12px;color:var(--text-muted);margin:8px 0 4px;">行距：<span id="lblLh">1.95</span></label>
+          <input id="rangeLh" type="range" min="1.5" max="2.4" step="0.05" value="1.95" style="width:100%;" />
+        </div>
+      </aside>
+    </div>
+
+    <footer class="statusbar">
+      <span id="statusTheme">主题：暖羊皮纸 · 赤铜</span>
+      <span id="statusWords">0 字</span>
+      <span id="statusSaved">已同步</span>
+    </footer>
+  </div>
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    const prefs = JSON.parse(localStorage.getItem("loki:novel:prefs") || "{}");
+    const state = { root: null, books: [], rulesText: "", book: null, file: null, mode: prefs.mode || "studio", dirty: false, saved: "" };
+    const toast = (m) => { const el = $("toast"); el.textContent = m; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 2200); };
+    const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const stripFm = (s) => s.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
+    const countWords = (s) => stripFm(s).replace(/[#>*`_\-\[\]()|]/g, "").replace(/\s+/g, "").length;
+    const readText = async (h) => await (await h.getFile()).text();
+    const writeText = async (h, t) => { const w = await h.createWritable(); await w.write(t); await w.close(); };
+
+    function renderMd(raw) {
+      return stripFm(raw).split(/\r?\n/).map((line) => {
+        if (!line.trim()) return "";
+        const hm = line.match(/^(#{1,3})\s+(.*)$/);
+        if (hm) return `<h${hm[1].length}>${esc(hm[2])}</h${hm[1].length}>`;
+        if (line.startsWith(">")) return `<blockquote>${esc(line.replace(/^>\s?/, ""))}</blockquote>`;
+        return `<p>${esc(line).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")}</p>`;
+      }).join("");
+    }
+
+    function applyTheme(t) {
+      document.documentElement.dataset.theme = t;
+      $("themeSelect").value = t;
+      $("statusTheme").textContent = "主题：" + $("themeSelect").selectedOptions[0].textContent;
+      prefs.theme = t; localStorage.setItem("loki:novel:prefs", JSON.stringify(prefs));
+    }
+
+    function applyMode(m) {
+      state.mode = m;
+      document.body.classList.remove("mode-studio", "mode-split", "mode-zen", "mode-reader");
+      document.body.classList.add("mode-" + m);
+      document.querySelectorAll("#modeBar button").forEach((b) => b.classList.toggle("active", b.dataset.mode === m));
+      $("paneRef").classList.toggle("hidden", m !== "split");
+      $("refSelect").classList.toggle("hidden", m !== "split");
+      $("paneEdit").classList.toggle("hidden", m === "reader");
+      $("paneRead").classList.toggle("hidden", m !== "reader");
+      if (m === "reader") $("readProse").innerHTML = renderMd($("editorArea").value);
+      prefs.mode = m; localStorage.setItem("loki:novel:prefs", JSON.stringify(prefs));
+    }
+
+    async function scanBooks(keepBook, keepPath) {
+      if (!state.root) return;
+      const books = [];
+      let rulesText = "";
+      for await (const [name, h] of state.root.entries()) {
+        if (h.kind !== "directory" || name.startsWith(".")) continue;
+        if (name === "_写作规则与Skill") {
+          for await (const [rn, rh] of h.entries()) {
+            if (rh.kind === "file" && rn.endsWith(".md") && rn.toLowerCase() !== "readme.md") rulesText += `\n\n### ${rn}\n` + (await readText(rh));
+          }
+          continue;
+        }
+        if (name.startsWith("_")) continue;
+        const core = [], chapters = [];
+        for await (const [fn, fh] of h.entries()) {
+          if (fh.kind === "file" && fn.endsWith(".md")) core.push({ path: fn, name: fn.replace(/\.md$/, ""), handle: fh, words: countWords(await readText(fh)) });
+          else if (fh.kind === "directory" && (fn === "正文" || fn === "04-正文")) {
+            for await (const [cn, ch] of fh.entries()) {
+              if (ch.kind === "file" && cn.endsWith(".md")) chapters.push({ path: `${fn}/${cn}`, name: cn.replace(/\.md$/, ""), handle: ch, words: countWords(await readText(ch)) });
+            }
+          }
+        }
+        core.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+        chapters.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+        books.push({ name, dirHandle: h, core, chapters });
+      }
+      books.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN"));
+      state.books = books; state.rulesText = rulesText.trim();
+      $("dirBadge").textContent = state.root.name;
+      $("emptyState").classList.add("hidden");
+      $("workspace").classList.remove("hidden");
+      $("btnRefresh").disabled = false;
+
+      const sel = $("bookSelect"); sel.innerHTML = "";
+      books.forEach((b) => { const o = document.createElement("option"); o.value = b.name; o.textContent = b.name; sel.appendChild(o); });
+      const target = books.find((b) => b.name === keepBook) || books[0] || null;
+      selectBook(target, keepPath);
+    }
+
+    function selectBook(book, preferPath) {
+      state.book = book;
+      if (!book) return;
+      $("bookSelect").value = book.name;
+      const makeBtn = (f) => {
+        const b = document.createElement("button");
+        b.className = "nav-btn" + (state.file?.path === f.path ? " active" : "");
+        b.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.name)}</span><span class="nav-meta">${f.words}字</span>`;
+        b.onclick = () => openDoc(f);
+        return b;
+      };
+      $("coreNav").innerHTML = ""; book.core.forEach((f) => $("coreNav").appendChild(makeBtn(f)));
+      $("chapNav").innerHTML = ""; book.chapters.forEach((f) => $("chapNav").appendChild(makeBtn(f)));
+      const rSel = $("refSelect"); rSel.innerHTML = "";
+      book.core.forEach((f) => { const o = document.createElement("option"); o.value = f.path; o.textContent = "参考：" + f.name; rSel.appendChild(o); });
+      if (book.core[0]) readText(book.core[0].handle).then((t) => { $("refProse").innerHTML = renderMd(t); });
+
+      const all = [...book.chapters, ...book.core];
+      const next = all.find((f) => f.path === preferPath) || book.chapters[book.chapters.length - 1] || book.core[0];
+      if (next) openDoc(next);
+    }
+
+    async function openDoc(f) {
+      if (state.dirty && !confirm("当前文档未保存，确定切换？")) return;
+      state.file = f;
+      const text = await readText(f.handle);
+      state.saved = text; state.dirty = false;
+      $("docTitle").textContent = f.name;
+      $("editorArea").value = text;
+      $("btnSave").disabled = true;
+      $("statusSaved").textContent = "已同步";
+      const w = countWords(text); $("statusWords").textContent = `${w} 字`; $("zenWords").textContent = `${w} 字`;
+      if (state.mode === "reader") $("readProse").innerHTML = renderMd(text);
+      selectBookSilentHighlight();
+    }
+
+    function selectBookSilentHighlight() {
+      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.firstChild.textContent === state.file?.name));
+    }
+
+    async function saveDoc() {
+      if (!state.file) return;
+      const val = $("editorArea").value;
+      await writeText(state.file.handle, val);
+      state.saved = val; state.dirty = false;
+      $("btnSave").disabled = true;
+      $("statusSaved").textContent = "已保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      toast("已写回本地 Markdown");
+      await scanBooks(state.book?.name, state.file.path);
+    }
+
+    async function copyPack(kind) {
+      if (!state.book) return;
+      const coreText = (await Promise.all(state.book.core.map(async (f) => `## ${f.name}\n${(await readText(f.handle)).trim()}`))).join("\n\n");
+      const lastChap = state.book.chapters[state.book.chapters.length - 1];
+      const lastTail = lastChap ? (await readText(lastChap.handle)).slice(-1200) : "";
+      const cur = $("editorArea").value;
+      const rules = state.rulesText ? `\n\n## 自定义写作规则\n${state.rulesText}` : "";
+      const prompts = {
+        outline: `# 为《${state.book.name}》生成下一章细纲\n请结合以下设定、人物状态、伏笔与上一章结尾，输出 3~5 个场景节拍（不写完整正文）：\n\n${coreText}${rules}\n\n## 上一章结尾\n${lastTail}`,
+        continue: `# 为《${state.book.name}》续写下一章正文\n请严格遵守设定与人物 OOC 红线，直接交付纯正文 Markdown：\n\n${coreText}${rules}\n\n## 上一章结尾\n${lastTail}`,
+        polish: `# 润色《${state.book.name}》当前章\n只优化表达、动作细节与节奏，不改动既定剧情与人物关系：\n\n${rules}\n\n## 当前章正文\n${cur}`,
+        sync: `# 根据本章定稿更新档案\n请基于下方最新章节，给出需要更新到「01-人物状态卡」「02-伏笔与时间线」「03-当前进度」的增量修改：\n\n## 最新章节\n${cur}`,
+      };
+      await navigator.clipboard.writeText(prompts[kind]);
+      toast("已复制零 API 写作包，直接发给你的 AI Agent 即可");
+    }
+
+    async function openDir() {
+      if (!window.showDirectoryPicker) return alert("请使用 Chrome、Edge 或 Arc 浏览器打开。");
+      try {
+        state.root = await window.showDirectoryPicker({ mode: "readwrite" });
+        await scanBooks();
+      } catch (e) { if (e.name !== "AbortError") toast("打开失败：" + e.message); }
+    }
+
+    $("btnOpenDir").onclick = openDir; $("btnOpenBig").onclick = openDir;
+    $("btnRefresh").onclick = () => scanBooks(state.book?.name, state.file?.path).then(() => toast("已刷新"));
+    $("bookSelect").onchange = (e) => selectBook(state.books.find((b) => b.name === e.target.value));
+    $("refSelect").onchange = async (e) => { const f = state.book?.core.find((x) => x.path === e.target.value); if (f) $("refProse").innerHTML = renderMd(await readText(f.handle)); };
+    $("btnSave").onclick = saveDoc; $("btnZenSave").onclick = saveDoc;
+    $("themeSelect").onchange = (e) => applyTheme(e.target.value);
+    document.querySelectorAll("#modeBar button").forEach((b) => { b.onclick = () => applyMode(b.dataset.mode); });
+    $("btnExitZen").onclick = () => applyMode("studio");
+    $("btnPackOutline").onclick = () => copyPack("outline");
+    $("btnPackContinue").onclick = () => copyPack("continue");
+    $("btnPackPolish").onclick = () => copyPack("polish");
+    $("btnPackSync").onclick = () => copyPack("sync");
+
+    $("btnNewBook").onclick = async () => {
+      if (!state.root) return;
+      const title = prompt("输入新作品书名：");
+      if (!title || !title.trim()) return;
+      const clean = title.trim().replace(/[\\/:*?"<>|]/g, "");
+      const dir = await state.root.getDirectoryHandle(clean, { create: true });
+      await writeText(await dir.getFileHandle("00-总纲与世界观.md", { create: true }), `# ${clean} · 总纲与世界观\n\n- 核心梗概：\n`);
+      await writeText(await dir.getFileHandle("01-人物状态卡.md", { create: true }), `# ${clean} · 人物状态卡\n`);
+      await writeText(await dir.getFileHandle("02-伏笔与时间线.md", { create: true }), `# ${clean} · 伏笔与时间线\n`);
+      await writeText(await dir.getFileHandle("03-当前进度.md", { create: true }), `# ${clean} · 当前进度\n`);
+      const chDir = await dir.getDirectoryHandle("正文", { create: true });
+      await writeText(await chDir.getFileHandle("第01章.md", { create: true }), `# 第 1 章\n\n`);
+      await scanBooks(clean, "正文/第01章.md");
+      toast("已新建作品：" + clean);
+    };
+
+    $("btnNewChap").onclick = async () => {
+      if (!state.book) return;
+      const num = state.book.chapters.length + 1;
+      const fn = `第${String(num).padStart(2, "0")}章.md`;
+      const chDir = await state.book.dirHandle.getDirectoryHandle("正文", { create: true });
+      await writeText(await chDir.getFileHandle(fn, { create: true }), `# 第 ${num} 章\n\n`);
+      await scanBooks(state.book.name, `正文/${fn}`);
+      toast("已新建：" + fn);
+    };
+
+    $("editorArea").addEventListener("input", () => {
+      const val = $("editorArea").value;
+      state.dirty = val !== state.saved;
+      $("btnSave").disabled = !state.dirty;
+      $("statusSaved").textContent = state.dirty ? "未保存" : "已同步";
+      const w = countWords(val); $("statusWords").textContent = `${w} 字`; $("zenWords").textContent = `${w} 字`;
+    });
+    $("rangeSize").oninput = (e) => { document.documentElement.style.setProperty("--editor-size", e.target.value + "px"); $("lblSize").textContent = e.target.value; };
+    $("rangeLh").oninput = (e) => { document.documentElement.style.setProperty("--editor-lh", e.target.value); $("lblLh").textContent = e.target.value; };
+    window.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s" && state.file && state.dirty) { e.preventDefault(); saveDoc(); }
+      else if (e.key === "Escape" && state.mode === "zen") applyMode("studio");
+    });
+
+    applyTheme(prefs.theme || "parchment");
+    applyMode(state.mode);
+  </script>
+</body>
+</html>
