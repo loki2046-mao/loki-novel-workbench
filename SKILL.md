@@ -5,7 +5,7 @@ description: Build a pure-local, zero-API-key personal novel writing workbench (
 
 # loki-novel-workbench
 
-Build a complete, pure-local, zero-API-key personal novel writing workbench. Instead of giving the user a wall of instructions, this skill ships a real scaffold script (`scripts/init_library.py`), five novel archive templates (`templates/`), a standalone 6-theme eye-care HTML workbench (`assets/novel-workbench.html`), context-packing protocols (`references/`), and an optional local CLI bridge (`assets/cli/`).
+Build a complete, pure-local, zero-API-key personal novel writing workbench. Instead of giving the user a wall of instructions, this skill ships a real scaffold script (`scripts/init_library.py`), five novel archive templates (`templates/`), a 49-theme eye-care HTML workbench (`assets/novel-workbench.html`), context-packing protocols (`references/`), and an optional local CLI bridge (`assets/cli/`).
 
 ## When to Use
 
@@ -33,13 +33,14 @@ This creates:
 - `_模板/` (copied from `templates/`: `00-总纲与世界观.md`, `01-人物状态卡.md`, `02-伏笔与时间线.md`, `03-当前进度.md`, `章节模板.md`)
 - `_写作规则与Skill/` (clean folder for the user's own style guides and writing skills)
 - `示例作品-雨夜来信/` (generic fictional demo novel so the user can test immediately)
-- `server.py` and `启动写作台.command` (optional Python bridge and macOS launcher; no third-party Python dependencies)
-- `小说台.html` (copied from `assets/novel-workbench.html`, 6 built-in eye-care themes, 4 writing modes, one-click Writing Pack copy; if the user wants more visual themes, tell them they can optionally layer Loki's open-source 35-theme skin skill on top)
+- `_style-cards/` and `_写作方法论/` (optional Markdown assets; bind one card and multiple skills per book)
+- `server.py`, `library.py`, `loki-themes.js` and `启动写作台.command` (optional Python bridge and macOS launcher; no third-party Python dependencies)
+- `小说台.html` (copied from `assets/novel-workbench.html`, 49 built-in eye-care themes, 5 writing modes, one-click Writing Pack copy; includes the bundled 35-theme kit plus 14 writing themes)
 
 ### Step 3: Guide the User Through First Launch and Writing Pack Flow
 
-1. For static editing and clipboard Writing Packs, open `<target_dir>/小说台.html` in Chrome, Edge, or Arc and select `<target_dir>`. For in-page generation, run `python3 server.py --open` from the generated folder, or use the macOS launcher; then select the library in the browser. Python 3.9+ is required for the bridge. If port 8788 is occupied, use `--port 8789`; the UI follows the serving origin.
-2. To upgrade an existing installation, use `python3 scripts/init_library.py "<target_dir>" --update-app`. This backs up and updates only the UI, server and launcher; manuscripts, templates and author rules are preserved. Do not replace a user's custom UI without explaining that the old application files are backed up.
+1. For static editing and clipboard Writing Packs, open `<target_dir>/小说台.html` in Chrome, Edge, or Arc and select `<target_dir>`. For in-page generation, run `python3 server.py --open` from the generated folder, or use the macOS launcher; the initialized library opens by default, and other libraries can be registered explicitly. Python 3.9+ is required for the bridge. If port 8788 is occupied, use `--port 8789`; the UI follows the serving origin.
+2. To upgrade an existing installation, use `python3 scripts/init_library.py "<target_dir>" --update-app`. This backs up and updates only the UI, themes, server, library module and launcher; manuscripts, templates and author rules are preserved. Do not replace a user's custom UI without explaining that the old application files are backed up.
 3. Follow `references/writing-pack-protocol.md` whenever the user asks to generate an outline, continue a chapter, polish prose, or sync post-chapter character/foreshadowing updates.
 4. Follow `references/agent-workflow-guide.md` to match the user's preferred zero-API mode (direct desktop agent on the local folder, clipboard Writing Pack for web subscriptions, or optional local official CLI integration).
 
@@ -49,7 +50,9 @@ This creates:
 - Confirm `node --check` passes if you customized any inline JavaScript in `小说台.html`.
 - When enabling CLI mode, verify `/api/engines` returns the installed clients' model catalogs and defaults; test generation with a small non-private prompt. Do not invent model IDs when a lookup fails; retain the client default and supported manual entry.
 - Preserve the installed CLI's actual capabilities: agy and Codex support per-request `--model`; the tested Cola `message` CLI follows the client's current global model and has no per-message model flag. Do not implement selection by silently changing Cola's global settings.
-- Results must enter preview first; filling the editor does not save. Use an explicit author action to save or export.
+- Results enter a full preview first. Only an explicit Confirm Write action saves; cancel keeps the generated text in chat. Continue/edit/skill append support conflict-checked undo. New chapters remain separate drafts. Stop aborts reception and writeback but the upstream CLI may keep running.
+- Verify smart intent, chapter naming, same-chapter split view, optional asset folders and binding persistence using fictional data. Never copy a runtime workspaces.json, assets-fallback.json, author card or manuscript into this repository.
+- The service hot-reloads library.py; restarting remains necessary after server.py updates.
 - Confirm no account credentials, personal library paths, private manuscripts or logs are bundled. The bridge inherits existing proxy variables and fills missing ones from macOS system settings without hardcoding a proxy address. An existing system network proxy is different from an untrusted model API gateway.
 - Explain that storage is local, but an explicit generation request sends the assembled Writing Pack to the selected CLI's provider under that client's account and terms.
 

@@ -1,586 +1,2431 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="parchment">
+<html lang="zh-CN" data-theme="loki-ease">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Loki Novel Workbench · 纯本地零 API 小说写作台</title>
+  <title>Loki 的写手空间（49 套主题合集）</title>
+  <!-- 加载 loki-theme-kit 全部 35 套成套外观主题与结构件规则（关闭独立悬浮球，由本页统一 49 套皮肤面板接管） -->
+  <script src="./loki-themes.js" data-theme="loki-ease" data-switcher="off"></script>
   <style>
     :root {
-      --editor-size: 16px;
+      --editor-size: 16.5px;
       --editor-lh: 1.95;
       --editor-width: 760px;
+      --editor-font: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
       --font-sans: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-serif: "Songti SC", "STSong", "Noto Serif SC", Georgia, serif;
       --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
-    [data-theme="parchment"] {
-      --bg-canvas: #f4efe4; --bg-surface: #ebe4d5; --bg-elevated: #fbf8f1; --bg-paper: #fdfbf6; --bg-soft: #e3dac8;
-      --text-primary: #2c221b; --text-secondary: #4c3d32; --text-muted: #756355;
-      --accent: #b8623c; --accent-ink: #ffffff; --border: rgba(62,47,35,0.14);
-    }
-    [data-theme="sage"] {
-      --bg-canvas: #e3edcd; --bg-surface: #edf4de; --bg-elevated: #f5f9ec; --bg-paper: #f7faf0; --bg-soft: #d7e5bc;
+
+    /* ============================================================
+     * 14 套写作专属主题（遵循 loki-theme-kit 同一套令牌契约，与 35 套零冲突共存）
+     * ============================================================ */
+    [data-theme="writer-sage"] {
+      --bg-canvas: #e3edcd; --bg-surface: #edf4de; --bg-elevated: #f5f9ec; --bg-paper: #f7faf0; --bg-canvas-soft: #d7e5bc; --bg-metal: #e7f0d4;
       --text-primary: #1f2e22; --text-secondary: #354b39; --text-muted: #526a56;
-      --accent: #2d6a4f; --accent-ink: #ffffff; --border: rgba(31,46,34,0.14);
+      --accent-copper: #2d6a4f; --accent-copper-deep: #1b4332; --accent-ink: #ffffff;
+      --border-subtle: rgba(31,46,34,0.14); --border-active: rgba(45,106,79,0.45);
+      --sidebar-fg: #1f2e22; --sidebar-muted: #526a56; --sidebar-hover: rgba(45,106,79,0.08); --sidebar-active: rgba(45,106,79,0.14); --sidebar-divider: rgba(31,46,34,0.12);
+      --radius-panel: 12px; --radius-control: 8px; --shadow-soft: 0 2px 8px rgba(31,46,34,0.06); --shadow-panel: 0 8px 24px rgba(31,46,34,0.07);
     }
-    [data-theme="nord"] {
-      --bg-canvas: #eceff4; --bg-surface: #e5e9f0; --bg-elevated: #f7f9fc; --bg-paper: #ffffff; --bg-soft: #d8dee9;
+    [data-theme="writer-parchment"] {
+      --bg-canvas: #f4efe4; --bg-surface: #ebe4d5; --bg-elevated: #fbf8f1; --bg-paper: #fdfbf6; --bg-canvas-soft: #e3dac8; --bg-metal: #eee7d9;
+      --text-primary: #2c221b; --text-secondary: #4c3d32; --text-muted: #705e50;
+      --accent-copper: #9a4a1a; --accent-copper-deep: #7a3811; --accent-ink: #ffffff;
+      --border-subtle: rgba(62,47,35,0.14); --border-active: rgba(154,74,26,0.45);
+      --sidebar-fg: #2c221b; --sidebar-muted: #705e50; --sidebar-hover: rgba(154,74,26,0.08); --sidebar-active: rgba(154,74,26,0.13); --sidebar-divider: rgba(62,47,35,0.12);
+      --radius-panel: 12px; --radius-control: 8px; --shadow-soft: 0 2px 8px rgba(44,34,27,0.06); --shadow-panel: 0 8px 24px rgba(44,34,27,0.07);
+    }
+    [data-theme="writer-matcha"] {
+      --bg-canvas: #ecf1eb; --bg-surface: #e2eae1; --bg-elevated: #f6f9f5; --bg-paper: #fafcf9; --bg-canvas-soft: #d5e0d4; --bg-metal: #e5ede4;
+      --text-primary: #1d2d22; --text-secondary: #374c3d; --text-muted: #566b5b;
+      --accent-copper: #386641; --accent-copper-deep: #25482c; --accent-ink: #ffffff;
+      --border-subtle: rgba(32,50,37,0.13); --border-active: rgba(56,102,65,0.45);
+      --sidebar-fg: #1d2d22; --sidebar-muted: #566b5b; --sidebar-hover: rgba(56,102,65,0.08); --sidebar-active: rgba(56,102,65,0.14); --sidebar-divider: rgba(32,50,37,0.12);
+      --radius-panel: 12px; --radius-control: 8px;
+    }
+    [data-theme="writer-nord"] {
+      --bg-canvas: #eceff4; --bg-surface: #e5e9f0; --bg-elevated: #f7f9fc; --bg-paper: #ffffff; --bg-canvas-soft: #d8dee9; --bg-metal: #e3e8f0;
       --text-primary: #2e3440; --text-secondary: #434c5e; --text-muted: #5c6678;
-      --accent: #3b6ea5; --accent-ink: #ffffff; --border: rgba(46,52,64,0.14);
+      --accent-copper: #3b6ea5; --accent-copper-deep: #2b5480; --accent-ink: #ffffff;
+      --border-subtle: rgba(46,52,64,0.13); --border-active: rgba(59,110,165,0.45);
+      --sidebar-fg: #2e3440; --sidebar-muted: #5c6678; --sidebar-hover: rgba(59,110,165,0.08); --sidebar-active: rgba(59,110,165,0.14); --sidebar-divider: rgba(46,52,64,0.12);
+      --radius-panel: 10px; --radius-control: 7px;
     }
-    [data-theme="amber-night"] {
-      --bg-canvas: #15120f; --bg-surface: #1c1814; --bg-elevated: #231e19; --bg-paper: #1f1b16; --bg-soft: #2b241d;
+    [data-theme="writer-cinnabar"] {
+      --bg-canvas: #f7f2e7; --bg-surface: #efe8da; --bg-elevated: #fcfaf4; --bg-paper: #fefcf7; --bg-canvas-soft: #e5dccb; --bg-metal: #f1eadc;
+      --text-primary: #2b211b; --text-secondary: #4d3c32; --text-muted: #715f52;
+      --accent-copper: #b9382c; --accent-copper-deep: #8f281e; --accent-ink: #ffffff;
+      --border-subtle: rgba(58,42,32,0.14); --border-active: rgba(185,56,44,0.45);
+      --sidebar-fg: #2b211b; --sidebar-muted: #715f52; --sidebar-hover: rgba(185,56,44,0.08); --sidebar-active: rgba(185,56,44,0.12); --sidebar-divider: rgba(58,42,32,0.12);
+      --radius-panel: 10px; --radius-control: 6px;
+    }
+    [data-theme="writer-jiangnan"] {
+      --bg-canvas: #e8eef0; --bg-surface: #dde6e9; --bg-elevated: #f3f7f8; --bg-paper: #f8fbfc; --bg-canvas-soft: #cfdbe0; --bg-metal: #e0e9ec;
+      --text-primary: #1c2d36; --text-secondary: #344c59; --text-muted: #516976;
+      --accent-copper: #355c7d; --accent-copper-deep: #25435c; --accent-ink: #ffffff;
+      --border-subtle: rgba(33,53,66,0.14); --border-active: rgba(53,92,125,0.45);
+      --sidebar-fg: #1c2d36; --sidebar-muted: #516976; --sidebar-hover: rgba(53,92,125,0.09); --sidebar-active: rgba(53,92,125,0.14); --sidebar-divider: rgba(33,53,66,0.12);
+      --radius-panel: 12px; --radius-control: 8px;
+    }
+    [data-theme="writer-rose"] {
+      --bg-canvas: #f8efed; --bg-surface: #f1e4e1; --bg-elevated: #fdf8f7; --bg-paper: #fffbfb; --bg-canvas-soft: #e8d6d2; --bg-metal: #f3e7e4;
+      --text-primary: #301d22; --text-secondary: #53363e; --text-muted: #75565e;
+      --accent-copper: #9d3c56; --accent-copper-deep: #7a2b40; --accent-ink: #ffffff;
+      --border-subtle: rgba(74,40,48,0.13); --border-active: rgba(157,60,86,0.42);
+      --sidebar-fg: #301d22; --sidebar-muted: #75565e; --sidebar-hover: rgba(157,60,86,0.08); --sidebar-active: rgba(157,60,86,0.13); --sidebar-divider: rgba(74,40,48,0.12);
+      --radius-panel: 14px; --radius-control: 9px;
+    }
+    [data-theme="writer-amber-night"] {
+      --bg-canvas: #15120f; --bg-surface: #1c1814; --bg-elevated: #231e19; --bg-paper: #1f1b16; --bg-canvas-soft: #2b241d; --bg-metal: #191511;
       --text-primary: #ece2d4; --text-secondary: #c9baa6; --text-muted: #9f8f7b;
-      --accent: #e29b53; --accent-ink: #1a130c; --border: rgba(245,222,195,0.14);
+      --accent-copper: #e29b53; --accent-copper-deep: #c47d36; --accent-ink: #1a130c;
+      --border-subtle: rgba(245,222,195,0.12); --border-active: rgba(226,155,83,0.45);
+      --sidebar-fg: #ece2d4; --sidebar-muted: #9f8f7b; --sidebar-hover: rgba(226,155,83,0.1); --sidebar-active: rgba(226,155,83,0.18); --sidebar-divider: rgba(245,222,195,0.1);
+      --radius-panel: 12px; --radius-control: 8px;
     }
-    [data-theme="midnight"] {
-      --bg-canvas: #0f172a; --bg-surface: #162036; --bg-elevated: #1c2944; --bg-paper: #17233b; --bg-soft: #233354;
+    [data-theme="writer-midnight"] {
+      --bg-canvas: #0f172a; --bg-surface: #162036; --bg-elevated: #1c2944; --bg-paper: #17233b; --bg-canvas-soft: #233354; --bg-metal: #131c30;
       --text-primary: #e2e8f0; --text-secondary: #cbd5e1; --text-muted: #94a3b8;
-      --accent: #60a5fa; --accent-ink: #0b1220; --border: rgba(148,163,184,0.16);
+      --accent-copper: #60a5fa; --accent-copper-deep: #3b82f6; --accent-ink: #0b1220;
+      --border-subtle: rgba(148,163,184,0.16); --border-active: rgba(96,165,250,0.45);
+      --sidebar-fg: #e2e8f0; --sidebar-muted: #94a3b8; --sidebar-hover: rgba(96,165,250,0.1); --sidebar-active: rgba(96,165,250,0.18); --sidebar-divider: rgba(148,163,184,0.14);
+      --radius-panel: 12px; --radius-control: 8px;
     }
-    [data-theme="forest-night"] {
-      --bg-canvas: #0f1714; --bg-surface: #15211c; --bg-elevated: #1b2b25; --bg-paper: #16241f; --bg-soft: #23372f;
+    [data-theme="writer-forest-night"] {
+      --bg-canvas: #0f1714; --bg-surface: #15211c; --bg-elevated: #1b2b25; --bg-paper: #16241f; --bg-canvas-soft: #23372f; --bg-metal: #121c18;
       --text-primary: #dcebe3; --text-secondary: #b4d1c2; --text-muted: #88a898;
-      --accent: #52b788; --accent-ink: #081710; --border: rgba(163,217,191,0.14);
+      --accent-copper: #52b788; --accent-copper-deep: #389469; --accent-ink: #081710;
+      --border-subtle: rgba(163,217,191,0.14); --border-active: rgba(82,183,136,0.45);
+      --sidebar-fg: #dcebe3; --sidebar-muted: #88a898; --sidebar-hover: rgba(82,183,136,0.1); --sidebar-active: rgba(82,183,136,0.18); --sidebar-divider: rgba(163,217,191,0.12);
+      --radius-panel: 12px; --radius-control: 8px;
+    }
+    [data-theme="writer-obsidian"] {
+      --bg-canvas: #121215; --bg-surface: #19191e; --bg-elevated: #212128; --bg-paper: #1b1b21; --bg-canvas-soft: #292933; --bg-metal: #16161b;
+      --text-primary: #e4e4e7; --text-secondary: #c4c4cc; --text-muted: #91919d;
+      --accent-copper: #a78bfa; --accent-copper-deep: #8b5cf6; --accent-ink: #120c24;
+      --border-subtle: rgba(255,255,255,0.1); --border-active: rgba(167,139,250,0.45);
+      --sidebar-fg: #e4e4e7; --sidebar-muted: #91919d; --sidebar-hover: rgba(167,139,250,0.1); --sidebar-active: rgba(167,139,250,0.18); --sidebar-divider: rgba(255,255,255,0.08);
+      --radius-panel: 12px; --radius-control: 8px;
+    }
+    [data-theme="writer-cyber"] {
+      --bg-canvas: #090d16; --bg-surface: #101726; --bg-elevated: #162035; --bg-paper: #111a2b; --bg-canvas-soft: #1d2942; --bg-metal: #0d1320;
+      --text-primary: #e6f6ff; --text-secondary: #b5d6eb; --text-muted: #7fa2be;
+      --accent-copper: #22d3ee; --accent-copper-deep: #06b6d4; --accent-ink: #04161c;
+      --border-subtle: rgba(34,211,238,0.22); --border-active: rgba(34,211,238,0.58);
+      --sidebar-fg: #e6f6ff; --sidebar-muted: #7fa2be; --sidebar-hover: rgba(34,211,238,0.12); --sidebar-active: rgba(34,211,238,0.2); --sidebar-divider: rgba(34,211,238,0.18);
+      --radius-panel: 10px; --radius-control: 7px; --shadow-panel: 0 0 28px rgba(34,211,238,0.1);
+    }
+    [data-theme="writer-phosphor"] {
+      --bg-canvas: #080d09; --bg-surface: #0e1610; --bg-elevated: #131f16; --bg-paper: #0f1912; --bg-canvas-soft: #1a2b1e; --bg-metal: #0b120d;
+      --text-primary: #d4f7dc; --text-secondary: #a2ddb0; --text-muted: #6ea37c;
+      --accent-copper: #4ade80; --accent-copper-deep: #22c55e; --accent-ink: #051a0c;
+      --border-subtle: rgba(74,222,128,0.22); --border-active: rgba(74,222,128,0.55);
+      --sidebar-fg: #d4f7dc; --sidebar-muted: #6ea37c; --sidebar-hover: rgba(74,222,128,0.11); --sidebar-active: rgba(74,222,128,0.18); --sidebar-divider: rgba(74,222,128,0.18);
+      --radius-panel: 8px; --radius-control: 6px;
+    }
+    [data-theme="writer-sunset"] {
+      --bg-canvas: #170f1e; --bg-surface: #21162b; --bg-elevated: #2b1d38; --bg-paper: #23182e; --bg-canvas-soft: #362546; --bg-metal: #1c1224;
+      --text-primary: #f7e9f0; --text-secondary: #dbc2d1; --text-muted: #b496b0;
+      --accent-copper: #fb7185; --accent-copper-deep: #f43f5e; --accent-ink: #230810;
+      --border-subtle: rgba(251,113,133,0.2); --border-active: rgba(251,113,133,0.55);
+      --sidebar-fg: #f7e9f0; --sidebar-muted: #b496b0; --sidebar-hover: rgba(251,113,133,0.12); --sidebar-active: rgba(251,113,133,0.2); --sidebar-divider: rgba(251,113,133,0.16);
+      --radius-panel: 14px; --radius-control: 9px;
     }
 
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; background: var(--bg-canvas); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; }
-    .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    html, body {
+      height: 100%; margin: 0; padding: 0;
+      background-color: var(--bg-canvas, #efe9dd);
+      color: var(--text-primary, #3a352e);
+      font-family: var(--font-sans); font-size: 14px; line-height: 1.6;
+      transition: background-color 0.22s ease, color 0.2s ease;
+    }
+
+    ::-webkit-scrollbar { width: 7px; height: 7px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-subtle, rgba(0,0,0,0.16)); border-radius: 999px; }
+
+    .app { display: flex; flex-direction: column; height: 100vh; overflow: hidden; position: relative; }
+
+    /* Topbar */
     .topbar {
-      height: 52px; padding: 0 16px; background: var(--bg-surface); border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-shrink: 0;
+      height: 54px; padding: 0 16px;
+      background: var(--bg-surface, #ffffff);
+      border-bottom: 1px solid var(--border-subtle, rgba(0,0,0,0.12));
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      flex-shrink: 0; z-index: 20;
     }
-    .brand { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14.5px; }
-    .logo { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; font-size: 13px; }
-    .pill { font-size: 11.5px; padding: 3px 9px; border-radius: 999px; background: var(--bg-soft); color: var(--text-secondary); }
-    .mode-bar { display: inline-flex; gap: 3px; background: var(--bg-soft); padding: 3px; border-radius: 9px; }
-    .mode-bar button { border: none; background: transparent; color: var(--text-muted); padding: 5px 10px; font-size: 12.5px; border-radius: 6px; cursor: pointer; }
-    .mode-bar button.active { background: var(--bg-elevated); color: var(--accent); font-weight: 700; }
-    .btn {
-      font-family: inherit; font-size: 12.5px; cursor: pointer; border: 1px solid var(--border);
-      background: var(--bg-elevated); color: var(--text-primary); padding: 6px 11px; border-radius: 8px;
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+    .brand-logo {
+      width: 28px; height: 28px; border-radius: var(--radius-control, 8px);
+      background: var(--accent-copper, #7a5a3c); color: var(--accent-ink, #fff);
+      display: grid; place-items: center; font-size: 14px; font-weight: 700;
     }
-    .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    select.ctrl { padding: 6px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); font-size: 12.5px; outline: none; }
+    .dir-pill {
+      font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px;
+      background: var(--bg-canvas-soft, rgba(0,0,0,0.05)); color: var(--text-secondary, #555);
+      border: 1px solid var(--border-subtle, rgba(0,0,0,0.12));
+      max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
 
+    /* Mode switcher */
+    .mode-bar {
+      display: inline-flex; align-items: center; gap: 3px;
+      background: var(--bg-canvas-soft, rgba(0,0,0,0.05)); padding: 3px;
+      border-radius: var(--radius-control, 10px); border: 1px solid var(--border-subtle, rgba(0,0,0,0.12));
+    }
+    .mode-bar button {
+      border: none; background: transparent; color: var(--text-muted, #666);
+      padding: 5px 11px; font-size: 12.5px; border-radius: calc(var(--radius-control, 8px) - 2px); font-weight: 500; cursor: pointer;
+    }
+    .mode-bar button:hover { color: var(--text-primary); }
+    .mode-bar button.active {
+      background: var(--bg-elevated, #fff); color: var(--accent-copper); font-weight: 700;
+      box-shadow: var(--shadow-soft, 0 1px 4px rgba(0,0,0,0.08));
+    }
+
+    .topbar-actions { display: flex; align-items: center; gap: 7px; }
+
+    button.btn {
+      font-family: inherit; font-size: 12.5px; cursor: pointer;
+      border: 1px solid var(--border-subtle, rgba(0,0,0,0.15));
+      background: var(--bg-elevated, #fff); color: var(--text-primary);
+      padding: 6px 11px; border-radius: var(--radius-control, 8px);
+      transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+    }
+    button.btn:hover:not(:disabled) { border-color: var(--border-active, var(--accent-copper)); }
+    button.btn.primary {
+      background: var(--accent-copper); color: var(--accent-ink, #fff);
+      border-color: var(--accent-copper); font-weight: 600;
+    }
+    button.btn:disabled { opacity: 0.42; cursor: not-allowed; }
+
+    /* Workspace layout */
     .workspace { display: flex; flex: 1; min-height: 0; overflow: hidden; }
-    .sidebar { width: 264px; flex-shrink: 0; background: var(--bg-surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-    .sidebar-top { padding: 10px; border-bottom: 1px solid var(--border); display: flex; gap: 6px; }
-    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 10px 8px 24px; }
-    .sec-title { font-size: 11px; font-weight: 700; color: var(--text-muted); padding: 8px 8px 5px; display: flex; justify-content: space-between; align-items: center; }
+
+    .sidebar {
+      width: 266px; flex-shrink: 0;
+      background: var(--bg-metal, var(--bg-surface));
+      border-right: 1px solid var(--sidebar-divider, var(--border-subtle));
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .sidebar-top {
+      padding: 12px; border-bottom: 1px solid var(--sidebar-divider, var(--border-subtle));
+      display: flex; gap: 6px;
+    }
+    .book-select {
+      flex: 1; min-width: 0; padding: 7px 10px;
+      border-radius: var(--radius-control, 8px); border: 1px solid var(--border-subtle);
+      background: var(--bg-elevated); color: var(--text-primary); font-size: 13px; font-weight: 600; outline: none;
+    }
+    .sidebar-scroll { flex: 1; overflow-y: auto; padding: 10px 8px 28px; }
+    .section-title {
+      font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--sidebar-muted, var(--text-muted)); padding: 8px 10px 5px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
     .nav-btn {
-      width: 100%; text-align: left; border: 1px solid transparent; background: transparent; color: var(--text-primary);
-      padding: 7px 9px; border-radius: 7px; font-size: 12.8px; display: flex; justify-content: space-between; cursor: pointer; margin-bottom: 2px;
+      width: 100%; text-align: left; border: 1px solid transparent; background: transparent;
+      padding: 8px 10px; border-radius: var(--radius-control, 8px);
+      display: flex; align-items: center; justify-content: space-between;
+      color: var(--sidebar-fg, var(--text-primary)); font-size: 13px; margin-bottom: 3px; cursor: pointer;
     }
-    .nav-btn:hover { background: var(--bg-soft); }
-    .nav-btn.active { background: var(--bg-elevated); color: var(--accent); font-weight: 600; border-color: var(--border); }
-    .nav-meta { font-size: 11px; color: var(--text-muted); margin-left: 6px; flex-shrink: 0; }
+    .nav-btn:hover { background: var(--sidebar-hover, var(--bg-canvas-soft)); }
+    .nav-btn.loki-nav-item-active {
+      background: var(--sidebar-active, var(--bg-elevated));
+      color: var(--accent-copper); font-weight: 600;
+      border-color: var(--border-active, var(--border-subtle));
+    }
+    .nav-meta { font-size: 11px; color: var(--sidebar-muted, var(--text-muted)); flex-shrink: 0; margin-left: 8px; }
+    .recent-dir-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+    .recent-dir-row .nav-btn { margin-bottom: 0; flex: 1; min-width: 0; }
+    .recent-dir-del {
+      border: none; background: transparent; color: var(--sidebar-muted, var(--text-muted));
+      cursor: pointer; padding: 4px 6px; border-radius: 6px; font-size: 13px; line-height: 1; opacity: 0.55;
+    }
+    .recent-dir-del:hover { opacity: 1; background: var(--sidebar-hover, var(--bg-canvas-soft)); color: var(--accent-copper); }
+    .recent-dirs-box {
+      margin: 0 auto 20px; text-align: left; background: var(--bg-canvas-soft);
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-panel, 12px); padding: 12px 14px;
+    }
+    .recent-dirs-title { font-size: 11.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.04em; }
+    .recent-dir-chip-list { display: flex; flex-direction: column; gap: 6px; }
+    .recent-dir-card {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 8px 11px; border-radius: var(--radius-control, 8px);
+      background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+      cursor: pointer; transition: border-color 0.14s ease;
+    }
+    .recent-dir-card:hover { border-color: var(--accent-copper); }
 
-    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
-    .doc-bar { padding: 8px 16px; background: var(--bg-surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    /* Center */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    .doc-toolbar {
+      padding: 9px 18px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+    }
+    .doc-title-wrap { display: flex; align-items: center; gap: 8px; min-width: 0; }
+    .doc-title { font-weight: 700; font-size: 15px; font-family: var(--font-display, inherit); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--state-warning, #d97706); display: none; flex-shrink: 0; }
+    .dirty-dot.show { display: inline-block; }
+
+    .meta-bar {
+      padding: 7px 18px; background: var(--bg-canvas-soft); border-bottom: 1px solid var(--border-subtle);
+      display: flex; align-items: center; gap: 7px; flex-wrap: wrap; font-size: 11.5px;
+    }
+    .meta-chip { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: 999px; padding: 2px 9px; color: var(--text-muted); }
+    .meta-chip strong { color: var(--text-primary); font-weight: 600; }
+
     .panes { flex: 1; display: flex; min-height: 0; overflow: hidden; }
-    .pane { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 22px 48px; }
-    .pane-ref { border-right: 1px solid var(--border); }
-    .paper { max-width: var(--editor-width); margin: 0 auto; background: var(--bg-paper); border: 1px solid var(--border); border-radius: 12px; min-height: 100%; }
-    textarea.editor {
-      width: 100%; min-height: 78vh; border: none; outline: none; resize: none; background: transparent; color: var(--text-primary);
-      padding: 28px 34px; font-family: var(--font-sans); font-size: var(--editor-size); line-height: var(--editor-lh);
+    .pane-editor, .pane-preview { flex: 1; min-width: 0; overflow-y: auto; }
+    .pane-editor { border-right: 1px solid var(--border-subtle); display: flex; justify-content: center; padding: 22px 24px 0; }
+    .editor-shell {
+      width: 100%; max-width: var(--editor-width); height: 100%; display: flex; flex-direction: column;
+      background: var(--bg-paper, var(--bg-elevated));
+      border-radius: var(--radius-panel, 12px) var(--radius-panel, 12px) 0 0;
+      border: 1px solid var(--border-subtle); border-bottom: none;
     }
-    .prose { padding: 28px 36px; font-size: var(--editor-size); line-height: var(--editor-lh); }
-    .prose h1, .prose h2 { margin-top: 1.2em; }
-    .prose blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--bg-soft); border-radius: 0 8px 8px 0; }
+    .pane-editor textarea {
+      width: 100%; flex: 1; border: none; outline: none; resize: none;
+      padding: 32px 38px 42vh; background: transparent; color: var(--text-primary);
+      font-family: var(--editor-font); font-size: var(--editor-size); line-height: var(--editor-lh); letter-spacing: 0.015em;
+    }
 
-    .cli-control { width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-paper); color: var(--text-primary); font: inherit; font-size: 12px; }
-    .cli-label { display: block; margin-top: 9px; font-size: 12px; }
-    .cli-note { font-size: 11.5px; line-height: 1.6; color: var(--text-muted); overflow-wrap: anywhere; white-space: pre-wrap; }
-    .cli-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
-    .rightbar { width: 292px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
-    .card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 11px; padding: 12px; }
-    .card h4 { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); }
-    .stack { display: flex; flex-direction: column; gap: 7px; }
-    .stack button { width: 100%; text-align: left; }
+    .pane-preview { padding: 26px 28px 80px; display: flex; flex-direction: column; }
+    .split-ref-bar { max-width: var(--editor-width); width: 100%; margin: 0 auto 14px; padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
+    .split-ref-bar select { flex: 1; min-width: 0; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-canvas-soft); color: var(--text-primary); font-size: 12.5px; font-weight: 600; outline: none; }
+    .prose {
+      max-width: var(--editor-width); margin: 0 auto;
+      background: var(--bg-paper, var(--bg-elevated)); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-panel, 14px); padding: 38px 46px;
+      box-shadow: var(--shadow-panel, 0 6px 24px rgba(0,0,0,0.06));
+      font-family: var(--editor-font); font-size: var(--editor-size); line-height: var(--editor-lh); color: var(--text-primary);
+    }
+    .prose.indent-p p { text-indent: 2em; margin: 0.85em 0; }
+    .prose h1 { font-size: 1.65em; margin-top: 0; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.35em; font-family: var(--font-display, inherit); }
+    .prose h2 { font-size: 1.28em; margin-top: 1.5em; font-family: var(--font-display, inherit); }
+    .prose h3 { font-size: 1.1em; margin-top: 1.25em; }
+    .prose blockquote {
+      margin: 16px 0; padding: 10px 16px; border-left: 3px solid var(--accent-copper);
+      background: var(--bg-canvas-soft); border-radius: 0 var(--radius-control, 8px) var(--radius-control, 8px) 0; color: var(--text-secondary);
+    }
+    .prose table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; font-family: var(--font-sans); }
+    .prose th, .prose td { border: 1px solid var(--border-subtle); padding: 8px 11px; text-align: left; }
+    .prose th { background: var(--bg-canvas-soft); font-weight: 600; }
+    .prose code { font-family: var(--font-mono); font-size: 0.88em; background: var(--bg-canvas-soft); padding: 2px 6px; border-radius: 5px; }
+    .prose pre { background: var(--bg-canvas-soft); padding: 14px 16px; border-radius: var(--radius-control, 8px); overflow-x: auto; font-size: 13px; }
+    .prose a.wikilink { color: var(--accent-copper); text-decoration: none; border-bottom: 1px dashed var(--accent-copper); font-weight: 600; cursor: pointer; }
 
-    .empty { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; }
-    .empty-card { max-width: 520px; width: 100%; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 16px; padding: 32px; text-align: center; }
-    .statusbar { height: 28px; padding: 0 14px; background: var(--bg-surface); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--text-muted); }
-    .hidden { display: none !important; }
-    body.mode-zen .sidebar, body.mode-zen .rightbar, body.mode-zen .topbar, body.mode-zen .doc-bar { display: none; }
+    /* Right panel */
+    .rightbar {
+      width: 316px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border-subtle);
+      overflow-y: auto; padding: 14px 14px 36px; display: flex; flex-direction: column; gap: 12px;
+    }
+    .card { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel, 12px); padding: 13px 14px; }
+    .card h4 { margin: 0 0 9px; font-size: 12px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stat-box { background: var(--bg-canvas-soft); border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); padding: 9px 6px; text-align: center; }
+    .stat-val { font-size: 16px; font-weight: 700; color: var(--accent-copper); }
+    .stat-lbl { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .foreshadow-item { background: var(--bg-canvas-soft); border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); padding: 8px 10px; margin-bottom: 7px; font-size: 12.5px; }
+    .foreshadow-item .f-head { display: flex; justify-content: space-between; font-size: 11px; color: var(--accent-copper); font-weight: 700; margin-bottom: 3px; }
+    .bridge-badge { font-size: 10.5px; padding: 2px 7px; border-radius: 999px; background: var(--bg-canvas-soft); color: var(--text-muted); border: 1px solid var(--border-subtle); }
+    .bridge-badge.online { color: #16a34a; border-color: rgba(22,163,74,0.4); background: rgba(22,163,74,0.1); font-weight: 600; }
+    .ai-textarea { width: 100%; resize: vertical; padding: 7px 9px; border-radius: var(--radius-control, 8px); border: 1px solid var(--border-subtle); background: var(--bg-canvas-soft); color: var(--text-primary); font-family: inherit; font-size: 12px; line-height: 1.5; outline: none; }
+    .ai-textarea:focus { border-color: var(--accent-copper); }
+
+    /* Status bar */
+    .statusbar {
+      height: 30px; padding: 0 16px; background: var(--bg-surface); border-top: 1px solid var(--border-subtle);
+      display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--text-muted); flex-shrink: 0;
+    }
+    .status-group { display: flex; align-items: center; gap: 14px; }
+
+    /* Modes */
+    body.mode-split .rightbar { display: none; }
     body.mode-reader .rightbar { display: none; }
-    .zen-pill { position: fixed; top: 14px; right: 18px; z-index: 40; display: none; gap: 8px; align-items: center; background: var(--bg-elevated); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px; }
-    body.mode-zen .zen-pill { display: inline-flex; }
-    .toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: var(--text-primary); color: var(--bg-canvas); padding: 8px 15px; border-radius: 8px; font-size: 12.5px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
-    .toast.show { opacity: 1; }
+    body.mode-zen .sidebar, body.mode-zen .rightbar, body.mode-zen .doc-toolbar, body.mode-zen .meta-bar, body.mode-zen .topbar,
+    body.mode-typewriter .sidebar, body.mode-typewriter .rightbar, body.mode-typewriter .doc-toolbar, body.mode-typewriter .meta-bar, body.mode-typewriter .topbar { display: none; }
+    body.mode-zen .pane-editor, body.mode-typewriter .pane-editor { border-right: none; padding-top: 32px; }
+
+    .zen-exit-pill {
+      position: fixed; top: 14px; right: 18px; z-index: 40; display: none; align-items: center; gap: 8px;
+      background: var(--bg-elevated); border: 1px solid var(--border-subtle); padding: 6px 12px; border-radius: 999px;
+      box-shadow: var(--shadow-panel, 0 6px 18px rgba(0,0,0,0.12)); font-size: 12px;
+    }
+    body.mode-zen .zen-exit-pill, body.mode-typewriter .zen-exit-pill { display: inline-flex; }
+
+    /* Unified 49-Theme & Typography Drawer */
+    .drawer-backdrop {
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.38); backdrop-filter: blur(3px);
+      display: none; justify-content: flex-end; z-index: 60;
+    }
+    .drawer-backdrop.open { display: flex; }
+    .drawer {
+      width: 440px; max-width: 95vw; height: 100%; background: var(--bg-surface);
+      border-left: 1px solid var(--border-subtle); box-shadow: -12px 0 36px rgba(0, 0, 0, 0.22);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    .drawer-head { padding: 15px 18px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between; }
+    .drawer-head h3 { margin: 0; font-size: 15.5px; }
+    .drawer-filters {
+      padding: 12px 18px 10px; border-bottom: 1px solid var(--border-subtle);
+      display: flex; flex-direction: column; gap: 9px; background: var(--bg-canvas-soft);
+    }
+    .filter-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+    .filter-tabs button {
+      border: 1px solid var(--border-subtle); background: var(--bg-elevated); color: var(--text-secondary);
+      padding: 4px 10px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .filter-tabs button.active {
+      background: var(--accent-copper); color: var(--accent-ink, #fff); border-color: var(--accent-copper); font-weight: 600;
+    }
+    .search-input {
+      width: 100%; padding: 7px 11px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px);
+      background: var(--bg-elevated); color: var(--text-primary); font-size: 13px; outline: none;
+    }
+    .drawer-body { flex: 1; overflow-y: auto; padding: 14px 18px 28px; }
+    .theme-group-title {
+      font-size: 11.5px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.04em;
+      margin: 15px 0 8px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .theme-group-title:first-child { margin-top: 0; }
+    .theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .theme-card {
+      border: 1.5px solid var(--border-subtle); border-radius: var(--radius-control, 9px); padding: 9px 10px;
+      cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 6px;
+      background: var(--bg-elevated); transition: transform 0.12s ease, border-color 0.12s ease;
+    }
+    .theme-card:hover { transform: translateY(-1px); border-color: var(--accent-copper); }
+    .theme-card.active { border-color: var(--accent-copper); box-shadow: 0 0 0 2px var(--border-active, rgba(122,90,60,0.28)); }
+    .swatch-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+    .swatch-dots { display: flex; align-items: center; gap: 4px; }
+    .swatch-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(128,128,128,0.3); }
+    .source-tag { font-size: 10px; padding: 1px 6px; border-radius: 999px; background: var(--bg-canvas-soft); color: var(--text-muted); }
+    .theme-name { font-weight: 600; font-size: 13px; color: var(--text-primary); }
+
+    .typo-section { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-subtle); display: flex; flex-direction: column; gap: 13px; }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; }
+    .ctrl-row input[type="range"] { width: 155px; accent-color: var(--accent-copper); }
+    .pill-group { display: inline-flex; gap: 4px; background: var(--bg-canvas-soft); padding: 3px; border-radius: var(--radius-control, 8px); }
+    .pill-group button { border: none; background: transparent; color: var(--text-muted); padding: 4px 9px; font-size: 12px; border-radius: 6px; cursor: pointer; }
+    .pill-group button.active { background: var(--bg-elevated); color: var(--accent-copper); font-weight: 600; }
+
+    /* Onboarding */
+    .empty-state { flex: 1; display: flex; align-items: center; justify-content: center; padding: 28px; }
+    .empty-card {
+      max-width: 580px; width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-panel, 16px); padding: 34px; box-shadow: var(--shadow-panel, 0 10px 30px rgba(0,0,0,0.08)); text-align: center;
+    }
+    .empty-card h2 { margin: 0 0 10px; font-size: 21px; font-family: var(--font-display, inherit); }
+    .empty-card p { color: var(--text-secondary); margin: 0 0 18px; line-height: 1.7; }
+    .quick-skins { display: flex; justify-content: center; gap: 7px; flex-wrap: wrap; margin-bottom: 22px; }
+
+    /* Modals */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); display: none; align-items: center; justify-content: center; z-index: 70; padding: 16px; }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      width: 100%; max-width: 420px; background: var(--bg-elevated); border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-panel, 14px); padding: 22px; box-shadow: var(--shadow-panel, 0 16px 42px rgba(0,0,0,0.28));
+    }
+    .modal h3 { margin: 0 0 14px; font-size: 16px; }
+    .field { margin-bottom: 12px; }
+    .field label { display: block; font-size: 12.5px; color: var(--text-muted); margin-bottom: 5px; }
+    .field input {
+      width: 100%; padding: 8px 11px; border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px);
+      background: var(--bg-canvas-soft); color: var(--text-primary); font-size: 13.5px; outline: none;
+    }
+    .field input:focus { border-color: var(--accent-copper); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+    .toast {
+      position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%) translateY(8px);
+      background: var(--text-primary); color: var(--bg-canvas); padding: 9px 16px; border-radius: 9px;
+      font-size: 12.5px; font-weight: 500; opacity: 0; pointer-events: none; transition: all 0.2s ease; z-index: 80;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .hidden { display: none !important; }
+    @media (max-width: 1040px) { .rightbar { display: none; } }
+    @media (max-width: 820px) { .mode-bar { display: none; } .sidebar { width: 215px; } }
+  #cliCard, #cliCard label {display:grid; gap:6px} #cliCard small {color:var(--text-muted); line-height:1.45} #cliCard textarea {box-sizing:border-box}
+  .cli-head-row {display:flex; align-items:center; justify-content:space-between; gap:6px}
+  .cli-row-2 {display:grid; grid-template-columns:1fr 1fr; gap:6px}
+  .cli-divider {border-top:1px solid var(--border-subtle); padding-top:8px; margin-top:2px; display:grid; gap:6px}
+  .cli-subhead {display:flex; align-items:center; justify-content:space-between; gap:6px; font-size:12px; font-weight:600; color:var(--text-secondary)}
+  .skill-list {max-height:92px; overflow-y:auto; display:flex; flex-direction:column; gap:4px; padding:6px 8px; border-radius:var(--radius-control, 8px); border:1px solid var(--border-subtle); background:var(--bg-canvas-soft)}
+  .skill-chip {display:flex !important; align-items:center; gap:6px; font-size:11.5px; color:var(--text-primary); cursor:pointer; user-select:none}
+  .skill-chip input {margin:0; accent-color:var(--accent-copper); flex-shrink:0}
+  .skill-chip span {overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .intent-pills {display:flex; flex-wrap:wrap; gap:4px}
+  .intent-pill {border:1px solid var(--border-subtle); background:var(--bg-canvas-soft); color:var(--text-secondary); padding:3px 7px; border-radius:999px; font-size:11px; cursor:pointer; font-family:inherit; transition:all 0.14s ease}
+  .intent-pill:hover {border-color:var(--accent-copper); color:var(--text-primary)}
+  .intent-pill.active {background:var(--accent-copper); color:var(--accent-ink, #fff); border-color:var(--accent-copper); font-weight:600}
+  .cli-chat-log {height:236px; overflow-y:auto; display:flex; flex-direction:column; gap:7px; padding:8px; border-radius:var(--radius-control, 8px); border:1px solid var(--border-subtle); background:var(--bg-canvas-soft); font-size:12px; line-height:1.5}
+  .cli-bubble {padding:7px 9px; border-radius:9px; word-break:break-word; white-space:pre-wrap}
+  .cli-bubble.user {background:var(--accent-copper); color:var(--accent-ink, #fff); align-self:flex-end; max-width:92%}
+  .cli-bubble.ai {background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); align-self:flex-start; max-width:96%}
+  .cli-mode-tag {display:inline-block; font-size:10px; font-weight:700; padding:1px 6px; border-radius:999px; background:rgba(0,0,0,0.14); margin-bottom:3px}
+  .cli-bubble.ai .cli-mode-tag {background:var(--bg-canvas-soft); color:var(--accent-copper)}
+  .cli-bubble-actions {display:flex; flex-wrap:wrap; gap:5px; margin-top:6px}
+  .cli-bubble-actions button {padding:2px 8px; font-size:11px}
+  .cli-composer-foot {display:flex; align-items:center; justify-content:space-between; gap:6px}
+  .cli-collapse {border-top:1px solid var(--border-subtle); padding-top:7px; margin-top:2px}
+  .cli-collapse summary {cursor:pointer; font-size:12px; font-weight:600; color:var(--text-secondary); user-select:none; list-style:none; display:flex; align-items:center; justify-content:space-between}
+  .cli-collapse summary::-webkit-details-marker {display:none}
+  .cli-collapse-body {display:grid; gap:6px; margin-top:7px}
+  body.shelf-loading #emptyState { visibility:hidden }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="zen-pill">
-      <span id="zenWords" style="color:var(--accent);font-weight:700;">0 字</span>
-      <button id="btnZenSave" class="btn">保存</button>
-      <button id="btnExitZen" class="btn primary">退出专注 (Esc)</button>
+  <div class="app loki-page">
+    <div class="zen-exit-pill loki-surface-strong">
+      <span id="zenModeLabel" style="color:var(--accent-copper);font-weight:700;">专注写作</span>
+      <span id="zenWords" style="color:var(--text-muted);">0 字</span>
+      <button id="btnZenSave" class="btn loki-button-secondary" style="padding:3px 9px;font-size:11.5px;">保存</button>
+      <button id="btnZenSkin" class="btn loki-button-secondary" style="padding:3px 9px;font-size:11.5px;">🎨 49 套皮肤</button>
+      <button id="btnExitZen" class="btn primary loki-button-primary" style="padding:3px 10px;font-size:11.5px;">退出 (Esc)</button>
     </div>
 
-    <header class="topbar">
+    <header class="topbar loki-workbench-toolbar">
       <div class="brand">
-        <div class="logo">L</div>
-        <span>Loki Novel Workbench</span>
-        <span class="pill" id="dirBadge">未连接书架</span>
+        <div class="brand-logo loki-header-sticker">L</div>
+        <span class="loki-sticker-title">Loki 的写手空间</span>
+        <span class="dir-pill" id="dirBadge">未连接目录</span>
       </div>
+
       <div class="mode-bar" id="modeBar">
-        <button data-mode="studio" class="active">工作台</button>
-        <button data-mode="split">双栏对照</button>
-        <button data-mode="zen">专注写作</button>
-        <button data-mode="reader">沉浸预览</button>
+        <button data-ws-mode="studio" class="active">工作台</button>
+        <button data-ws-mode="split">双栏对照</button>
+        <button data-ws-mode="zen">禅意专注</button>
+        <button data-ws-mode="typewriter">打字机</button>
+        <button data-ws-mode="reader">沉浸阅读</button>
       </div>
-      <div style="display:flex;align-items:center;gap:7px;">
-        <select id="themeSelect" class="ctrl" title="切换护眼皮肤">
-          <option value="parchment">暖羊皮纸 · 赤铜</option>
-          <option value="sage">豆沙护眼绿</option>
-          <option value="nord">云雾冷灰</option>
-          <option value="amber-night">深夜琥珀</option>
-          <option value="midnight">午夜蓝墨</option>
-          <option value="forest-night">森林苔夜</option>
-        </select>
-        <button id="btnOpenDir" class="btn primary">打开小说目录</button>
-        <button id="btnRefresh" class="btn" disabled>刷新</button>
+
+      <div class="topbar-actions">
+        <button id="btnOpenDir" class="btn primary loki-button-primary">打开目录</button>
+        <button id="btnRefresh" class="btn loki-button-secondary" disabled>刷新</button>
+        <button id="btnCopyPack" class="btn loki-button-secondary" disabled>复制上下文</button>
+        <button id="btnSkinDrawer" class="btn loki-button-secondary">🎨 皮肤 (49)</button>
       </div>
     </header>
 
-    <div id="emptyState" class="empty">
-      <div class="empty-card">
-        <h2 style="margin:0 0 10px;">Loki Novel Workbench</h2>
-        <p style="color:var(--text-secondary);line-height:1.75;margin:0 0 20px;">
-          纯本地 Markdown 驱动 · 零 API Key · 兼容 Obsidian。<br>
-          选择你的本地小说目录，即可开始管理设定、大纲、伏笔与章节正文，一键打包上下文交给手头任意 AI Agent 续写。
-        </p>
-        <div id="recentBox" class="hidden" style="margin-bottom:16px;"></div>
-        <button id="btnOpenBig" class="btn primary" style="padding:10px 22px;font-size:14px;">选择本地小说文件夹</button>
+    <div id="emptyState" class="empty-state">
+      <div class="empty-card loki-surface-strong loki-empty-hero">
+        <h2>49 套主题合集已就绪（Loki 35 套 + 写作护眼 14 套）</h2>
+        <p>所有皮肤共享同一套外观面板与结构件钩子，零冲突一键切换。直接读写本地与 Obsidian Markdown 文件夹。</p>
+        <div class="quick-skins" id="quickSkins"></div>
+        <div id="emptyRecentDirs" class="recent-dirs-box hidden"></div>
+        <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
+          <button id="btnOpenDirBig" class="btn primary loki-button-primary" style="padding: 10px 22px; font-size: 14px;">选择新的本地 / Obsidian 文件夹</button>
+          <button id="btnOpenSkinsBig" class="btn loki-button-secondary" style="padding: 10px 18px; font-size: 14px;">浏览全部 49 套皮肤</button>
+        </div>
       </div>
     </div>
 
     <div id="workspace" class="workspace hidden">
-      <aside class="sidebar">
+      <aside class="sidebar loki-sidebar">
         <div class="sidebar-top">
-          <select id="bookSelect" class="ctrl" style="flex:1;min-width:0;"></select>
-          <button id="btnNewBook" class="btn" title="新建作品">+</button>
+          <select id="bookSelect" class="book-select loki-input"></select>
+          <button id="btnNewBook" class="btn loki-button-secondary" title="新建作品" style="padding:6px 9px;">+</button>
         </div>
         <div class="sidebar-scroll">
-          <div class="sec-title"><span>核心设定与大纲</span></div>
+          <div id="recentDirsSection" class="hidden" style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--sidebar-divider, var(--border-subtle));">
+            <div class="section-title loki-nav-group-label">
+              <span>已登录文件夹</span>
+              <button id="btnAddDirSide" class="btn loki-button-secondary" style="padding: 2px 7px; font-size: 11px;">+ 打开</button>
+            </div>
+            <div id="recentDirsNav"></div>
+          </div>
+
+          <div class="section-title loki-nav-group-label"><span>核心档案</span></div>
           <div id="coreNav"></div>
-          <div class="sec-title" style="margin-top:10px;"><span>正文目录</span><button id="btnNewChap" class="btn" style="padding:2px 7px;font-size:11px;">+ 新章</button></div>
-          <div id="chapNav"></div>
+
+          <div class="section-title loki-nav-group-label" style="margin-top: 12px;">
+            <span>分章正文</span>
+            <button id="btnNewChapter" class="btn loki-button-secondary" style="padding: 2px 8px; font-size: 11px;">+ 新章</button>
+          </div>
+          <div id="chapterNav"></div>
         </div>
       </aside>
 
-      <main class="main">
-        <div class="doc-bar">
-          <strong id="docTitle">请选择左侧文档</strong>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <select id="refSelect" class="ctrl hidden" title="左侧对照参考文档"></select>
-            <button id="btnSave" class="btn primary" disabled>保存 ⌘S</button>
+      <main class="main loki-chat-stream">
+        <div class="doc-toolbar">
+          <div class="doc-title-wrap">
+            <span class="dirty-dot" id="dirtyDot" title="有未保存改动"></span>
+            <span class="doc-title" id="docTitle">请选择左侧文件</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <button id="btnNewChapterTop" class="btn loki-button-secondary" title="直接新建下一章空白稿并进入写作">＋ 新建下一章</button>
+            <button id="btnToggleEdit" class="btn loki-button-secondary" disabled>切换编辑 / 预览</button>
+            <button id="btnSave" class="btn primary loki-button-primary" disabled>保存 ⌘S</button>
           </div>
         </div>
+        <div id="metaBar" class="meta-bar hidden"></div>
         <div class="panes">
-          <div id="paneRef" class="pane pane-ref hidden"><div class="paper"><article id="refProse" class="prose"></article></div></div>
-          <div id="paneEdit" class="pane"><div class="paper"><textarea id="editorArea" class="editor" spellcheck="false" placeholder="在这里写作..."></textarea></div></div>
-          <div id="paneRead" class="pane hidden"><div class="paper"><article id="readProse" class="prose"></article></div></div>
+          <div id="paneEditor" class="pane-editor hidden">
+            <div class="editor-shell loki-paper">
+              <textarea id="editorArea" spellcheck="false" placeholder="在这里安静地写下你的故事..."></textarea>
+            </div>
+          </div>
+          <div id="panePreview" class="pane-preview">
+            <div id="splitRefBar" class="split-ref-bar hidden">
+              <span style="color:var(--text-muted);font-weight:700;white-space:nowrap;">📌 右栏对照</span>
+              <select id="splitRefSelect"></select>
+            </div>
+            <article id="previewProse" class="prose loki-paper"></article>
+          </div>
         </div>
       </main>
 
-      <aside class="rightbar">
-        <div class="card" id="cliCard">
-          <h4>台内 AI 创作 · 本机 CLI</h4>
-          <div class="cli-row"><span id="cliStatus" role="status">未连接</span><button id="cliCheck" class="btn">重新检测</button></div>
-          <p id="cliHint" class="cli-note"></p>
-          <label class="cli-label">创作引擎<select id="cliEngine" class="ctrl cli-control"></select></label>
-          <label class="cli-label">模型<select id="cliModel" class="ctrl cli-control"></select></label>
-          <input id="cliModelCustom" class="cli-control hidden" aria-label="手动模型 ID" placeholder="输入客户端支持的模型 ID" />
-          <label class="cli-label">需求 / 细纲<textarea id="cliBrief" class="cli-control" rows="3" placeholder="补充本次创作要求…"></textarea></label>
-          <p class="cli-note">生成会把本次写作包交给所选客户端处理，使用其账户和订阅额度。</p>
-          <div class="stack">
-            <button class="btn primary" data-cli-kind="outline" disabled>生成细纲</button>
-            <button class="btn" data-cli-kind="continue" disabled>续写正文</button>
-            <button class="btn" data-cli-kind="polish" disabled>润色当前章</button>
-          </div>
-          <p id="cliMessage" class="cli-note" role="status"></p>
-          <label class="cli-label">结果预览<textarea id="cliOutput" class="cli-control" rows="7" readonly></textarea></label>
-          <div class="stack">
-            <button id="cliFill" class="btn" disabled>填入当前编辑器（尚不保存）</button>
-            <button id="cliSaveNew" class="btn" disabled>另存 Markdown…</button>
+      <aside class="rightbar loki-context-panel">
+        <div class="card loki-surface">
+          <h4>全书概览</h4>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val" id="statChapters">0</div><div class="stat-lbl">章节</div></div>
+            <div class="stat-box"><div class="stat-val" id="statWords">0</div><div class="stat-lbl">总字数</div></div>
+            <div class="stat-box"><div class="stat-val" id="statOpenForeshadow">0</div><div class="stat-lbl">待回收</div></div>
           </div>
         </div>
-
-        <div class="card">
-          <h4>⚡ 零 API 写作包（适配任意 Agent）</h4>
-          <div class="stack">
-            <button id="btnPackOutline" class="btn primary">① 打包：生成下一章细纲</button>
-            <button id="btnPackContinue" class="btn">② 打包：按细纲续写正文</button>
-            <button id="btnPackPolish" class="btn">③ 打包：润色当前章节</button>
-            <button id="btnPackSync" class="btn">④ 打包：写后状态回写</button>
+        <div class="card loki-surface">
+          <h4>待回收伏笔</h4>
+          <div id="foreshadowList" style="font-size: 12.5px; color: var(--text-muted);">暂无待回收伏笔</div>
+        </div>
+        <section class="card loki-surface" id="cliCard">
+          <div class="cli-head-row">
+            <h4 style="margin:0;">💬 写作助手对话</h4>
+            <div style="display:flex;align-items:center;gap:5px;"><span id="cliStatus" class="bridge-badge">检测中</span><button class="btn" id="cliCheck" style="padding:2px 7px;font-size:11px;">检测</button></div>
           </div>
-          <p style="margin:9px 0 0;font-size:11.5px;color:var(--text-muted);line-height:1.55;">
-            自动打包本书总纲、人物状态卡、伏笔时间线、当前进度、上一章结尾以及 <code>_写作规则与Skill</code>，复制后直接发给你的订阅制 AI 即可。
+          <small id="cliHint"></small>
+          <div class="cli-row-2">
+            <label style="font-size:11.5px;">引擎<select id="cliEngine" class="ai-textarea"></select></label>
+            <label style="font-size:11.5px;">模型<select id="cliModel" class="ai-textarea"></select></label>
+          </div>
+          <input id="cliModelCustom" class="ai-textarea hidden" type="text" placeholder="输入该客户端支持的模型 ID（留空用默认）" />
+          <details id="cliAssetsBox" class="cli-collapse" open>
+            <summary><span>🎨 风格卡 &amp; 📚 Skill</span><span id="cliSkillCount" class="bridge-badge">0 项</span></summary>
+            <div class="cli-collapse-body">
+              <select id="cliStyleCard" class="ai-textarea"></select>
+              <div id="cliSkillList" class="skill-list"><small>连接书架目录后自动扫描…</small></div>
+              <small id="cliAssetHint" class="hidden"></small>
+            </div>
+          </details>
+          <small id="cliAssetStatus" style="color:var(--accent-copper);font-weight:600;"></small>
+          <div class="cli-divider">
+            <div class="intent-pills" id="cliIntentPills">
+              <button type="button" class="intent-pill active" data-intent="auto" title="根据你的话自动判断执行哪种操作">✨ 智能</button>
+              <button type="button" class="intent-pill" data-intent="continue" title="直接续写并追加到当前章末尾">① 往后续写</button>
+              <button type="button" class="intent-pill" data-intent="new_chapter" title="自动新建下一章文件并写正文">② 开新一章</button>
+              <button type="button" class="intent-pill" data-intent="edit_current" title="按你的要求直接修改当前章">③ 改当前章</button>
+              <button type="button" class="intent-pill" data-intent="iterate_skill" title="总结你的修改原因并自动追加写入 Skill">④ 迭代Skill</button>
+            </div>
+            <div id="cliChatLog" class="cli-chat-log"></div>
+            <div id="cliSkillTargetWrap" class="hidden">
+              <label style="font-size:11.5px;">写回目标 Skill / 风格卡<select id="skillTarget" class="ai-textarea"></select></label>
+            </div>
+            <textarea id="cliChatInput" class="ai-textarea" rows="3" placeholder="直接说你想做什么（Enter 发送，Shift+Enter 换行）：&#10;· 继续往后写一段冲突&#10;· 开新的一章，写两人摊牌&#10;· 把第2段太AI的词去掉&#10;· 总结我刚才的修改，迭代进Skill"></textarea>
+            <div class="cli-composer-foot">
+              <small id="cliMessage" role="status" style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;"></small>
+              <div style="display:flex;gap:5px;flex-shrink:0;">
+                <button type="button" class="btn" id="cliClearChat" style="padding:4px 8px;font-size:11.5px;">清空</button>
+                <button type="button" class="btn hidden" id="cliStopBtn" style="padding:4px 9px;font-size:11.5px;color:#dc2626;border-color:rgba(220,38,38,0.45);">⏹ 停止</button>
+                <button type="button" class="btn primary" id="cliSendBtn" style="padding:4px 12px;font-size:12px;">发送</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <div class="card loki-surface">
+          <h4>与桌面 Gemini 协作</h4>
+          <p style="margin: 0 0 10px; font-size: 12px; color: var(--text-muted); line-height: 1.55;">
+            在桌面 Gemini 直接说「继续写《<span id="hintBookName">书名</span>》第 <span id="hintNextCh">1</span> 章」，定稿后点顶部「刷新」即刻同步。
           </p>
-        </div>
-        <div class="card">
-          <h4>Aa 排版微调</h4>
-          <label style="display:block;font-size:12px;color:var(--text-muted);margin-bottom:4px;">字号：<span id="lblSize">16</span>px</label>
-          <input id="rangeSize" type="range" min="14" max="22" value="16" style="width:100%;" />
-          <label style="display:block;font-size:12px;color:var(--text-muted);margin:8px 0 4px;">行距：<span id="lblLh">1.95</span></label>
-          <input id="rangeLh" type="range" min="1.5" max="2.4" step="0.05" value="1.95" style="width:100%;" />
+          <button id="btnCopyPackSide" class="btn primary loki-button-primary" style="width: 100%; justify-content: center;">一键复制写前上下文包</button>
         </div>
       </aside>
     </div>
 
     <footer class="statusbar">
-      <span id="statusTheme">主题：暖羊皮纸 · 赤铜</span>
-      <span id="statusWords">0 字</span>
-      <span id="statusSaved">已同步</span>
+      <div class="status-group">
+        <span id="statusSkin">皮肤：纸墨·日</span>
+        <span id="statusMode">模式：工作台</span>
+      </div>
+      <div class="status-group">
+        <span id="statusWords">0 字 · 约 0 分钟阅读</span>
+        <span id="statusSaved">已同步</span>
+      </div>
     </footer>
   </div>
+
+  <!-- Unified 49-Theme & Typography Drawer -->
+  <div id="drawerBackdrop" class="drawer-backdrop">
+    <div class="drawer loki-surface-strong">
+      <div class="drawer-head">
+        <h3>🎨 49 套皮肤与排版</h3>
+        <button id="btnCloseDrawer" class="btn loki-button-secondary">关闭</button>
+      </div>
+      <div class="drawer-filters">
+        <div class="filter-tabs" id="filterTabs">
+          <button data-filter="all" class="active">全部 (49)</button>
+          <button data-filter="care">护眼优先 (14)</button>
+          <button data-filter="loki">Loki 35 套</button>
+          <button data-filter="writer">写作专属 14 套</button>
+        </div>
+        <input id="skinSearch" class="search-input loki-input" type="text" placeholder="搜索皮肤名，如：纸墨、雾苔、豆沙、波普、像素、赛博..." />
+      </div>
+      <div class="drawer-body">
+        <div id="themeGroups"></div>
+
+        <div class="typo-section">
+          <div class="theme-group-title" style="margin:0;">写作排版微调</div>
+          <div class="ctrl-row">
+            <span>正文字号（<strong id="lblSize">16.5px</strong>）</span>
+            <input id="rngSize" type="range" min="14" max="22" step="0.5" value="16.5" />
+          </div>
+          <div class="ctrl-row">
+            <span>行距舒适度（<strong id="lblLh">1.95</strong>）</span>
+            <input id="rngLh" type="range" min="1.55" max="2.3" step="0.05" value="1.95" />
+          </div>
+          <div class="ctrl-row">
+            <span>字体质感</span>
+            <div class="pill-group" id="fontPills">
+              <button data-font="serif" class="active">书卷衬线</button>
+              <button data-font="sans">现代无衬线</button>
+              <button data-font="mono">极客等宽</button>
+            </div>
+          </div>
+          <div class="ctrl-row">
+            <span>版心宽度</span>
+            <div class="pill-group" id="widthPills">
+              <button data-width="640px">精读窄栏</button>
+              <button data-width="760px" class="active">标准</button>
+              <button data-width="960px">宽屏</button>
+            </div>
+          </div>
+          <div class="ctrl-row">
+            <span>阅读首行缩进（两字）</span>
+            <button id="btnToggleIndent" class="btn loki-button-secondary">已开启</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Book Modal -->
+  <div id="modalBook" class="modal-backdrop">
+    <div class="modal loki-surface-strong">
+      <h3>新建作品</h3>
+      <div class="field"><label>书名</label><input id="inputBookTitle" class="loki-input" type="text" placeholder="例如：长安雾夜" /></div>
+      <div class="field"><label>题材与基调</label><input id="inputBookGenre" class="loki-input" type="text" placeholder="例如：悬疑 / 现实向 / 克制白描" /></div>
+      <div class="modal-actions">
+        <button id="btnCancelBook" class="btn loki-button-secondary">取消</button>
+        <button id="btnConfirmBook" class="btn primary loki-button-primary">创建作品档案</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Chapter Modal -->
+  <div id="modalChapter" class="modal-backdrop">
+    <div class="modal loki-surface-strong">
+      <h3>新建章节</h3>
+      <div class="field"><label>章节序号</label><input id="inputChapterNum" class="loki-input" type="number" min="1" value="1" /></div>
+      <div class="field"><label>章节标题</label><input id="inputChapterTitle" class="loki-input" type="text" placeholder="例如：雨夜来客" /></div>
+      <div class="modal-actions">
+        <button id="btnCancelChapter" class="btn loki-button-secondary">取消</button>
+        <button id="btnConfirmChapter" class="btn primary loki-button-primary">创建章节</button>
+      </div>
+    </div>
+  </div>
+
+  <dialog id="generatedReview" style="width:min(850px,90vw);border-radius:14px;padding:22px;background:var(--bg-elevated);color:var(--text-primary)">
+    <h3 id="reviewTitle">生成预览</h3>
+    <textarea id="reviewText" readonly style="width:100%;height:55vh;line-height:1.8"></textarea>
+    <p>确认后写回当前作品；取消会保留这份预览。</p>
+    <button type="button" id="reviewCancel" class="btn">取消写回</button>
+    <button type="button" id="reviewApply" class="btn primary">确认写回</button>
+  </dialog>
   <div id="toast" class="toast"></div>
 
   <script>
+    /* 35 套 Loki 主题 + 14 套写作专属主题 = 49 套统一目录 */
+    const ALL_THEMES = [
+      // Loki 护眼组（3）
+      { id: "loki-ease", name: "纸墨·日", source: "loki", group: "Loki · 护眼组", care: true, swatches: ["#efe9dd","#f6f1e6","#7a5a3c","#3a352e"] },
+      { id: "loki-ease-dark", name: "纸墨·夜", source: "loki", group: "Loki · 护眼组", care: true, swatches: ["#1c1b18","#232220","#c2a878","#cfc8ba"] },
+      { id: "loki-moss", name: "雾苔", source: "loki", group: "Loki · 护眼组", care: true, swatches: ["#e7ece6","#eef2ec","#4a6b57","#26332b"] },
+
+      // 写作专属 · 护眼日间 & 东方书房（7）
+      { id: "writer-sage", name: "豆沙护眼绿", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#e3edcd","#f5f9ec","#2d6a4f","#1f2e22"] },
+      { id: "writer-parchment", name: "暖羊皮纸", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#f4efe4","#fbf8f1","#9a4a1a","#2c221b"] },
+      { id: "writer-matcha", name: "抹茶书房", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#ecf1eb","#f6f9f5","#386641","#1d2d22"] },
+      { id: "writer-nord", name: "云雾冷灰", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#eceff4","#f7f9fc","#3b6ea5","#2e3440"] },
+      { id: "writer-cinnabar", name: "宣纸朱砂", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#f7f2e7","#fcfaf4","#b9382c","#2b211b"] },
+      { id: "writer-jiangnan", name: "烟雨江南", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#e8eef0","#f3f7f8","#355c7d","#1c2d36"] },
+      { id: "writer-rose", name: "暮色玫瑰", source: "writer", group: "写作专属 · 护眼与书房", care: true, swatches: ["#f8efed","#fdf8f7","#9d3c56","#301d22"] },
+
+      // 写作专属 · 深夜护眼与酷感氛围（7）
+      { id: "writer-amber-night", name: "深夜琥珀", source: "writer", group: "写作专属 · 深夜与氛围", care: true, swatches: ["#15120f","#231e19","#e29b53","#ece2d4"] },
+      { id: "writer-midnight", name: "午夜蓝墨", source: "writer", group: "写作专属 · 深夜与氛围", care: true, swatches: ["#0f172a","#1c2944","#60a5fa","#e2e8f0"] },
+      { id: "writer-forest-night", name: "森林苔夜", source: "writer", group: "写作专属 · 深夜与氛围", care: true, swatches: ["#0f1714","#1b2b25","#52b788","#dcebe3"] },
+      { id: "writer-obsidian", name: "黑曜石禅", source: "writer", group: "写作专属 · 深夜与氛围", care: true, swatches: ["#121215","#212128","#a78bfa","#e4e4e7"] },
+      { id: "writer-cyber", name: "赛博霓虹", source: "writer", group: "写作专属 · 深夜与氛围", care: false, swatches: ["#090d16","#162035","#22d3ee","#e6f6ff"] },
+      { id: "writer-phosphor", name: "复古终端", source: "writer", group: "写作专属 · 深夜与氛围", care: false, swatches: ["#080d09","#131f16","#4ade80","#d4f7dc"] },
+      { id: "writer-sunset", name: "落日蒸汽波", source: "writer", group: "写作专属 · 深夜与氛围", care: false, swatches: ["#170f1e","#2b1d38","#fb7185","#f7e9f0"] },
+
+      // Loki 沉静组（4）
+      { id: "loki-blueprint", name: "蓝图", source: "loki", group: "Loki · 沉静组", care: false, swatches: ["#10305a","#16406f","#dbe8ff","#eaf2ff"] },
+      { id: "loki-atlas", name: "导览图", source: "loki", group: "Loki · 沉静组", care: false, swatches: ["#12161a","#1b2127","#dde996","#f2f4e9"] },
+      { id: "loki-indigo", name: "靖蓝夜色", source: "loki", group: "Loki · 沉静组", care: false, swatches: ["#191a3a","#24254f","#7859f7","#eae9ff"] },
+      { id: "sky-cinema", name: "天空", source: "loki", group: "Loki · 沉静组", care: false, swatches: ["#dcecf7","#f8fcff","#1550b7","#092b59"] },
+
+      // Loki 复古屏幕组（7）
+      { id: "loki-desk", name: "老式桌面", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#b8b4ab","#f2f0eb","#1560a8","#1b1a18"] },
+      { id: "loki-sandbox", name: "沙盘", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#f7e3bb","#fdf3dd","#a85a24","#0a2447"] },
+      { id: "loki-vapor", name: "蒸汽波", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#1b1033","#241547","#5ef1ff","#f2e9ff"] },
+      { id: "loki-8bit", name: "像素冒险", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#0d2b51","#143a63","#f0842c","#f3e4c6"] },
+      { id: "pixel-arcade", name: "像素", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#11194f","#1b2771","#62e36c","#f2f4ff"] },
+      { id: "loki-terminal", name: "终端绿", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#06120b","#0a1c12","#3ddc97","#d5f7e4"] },
+      { id: "loki-neon", name: "霓虹电台", source: "loki", group: "Loki · 复古屏幕组", care: false, swatches: ["#131a1f","#1c262d","#ff7a35","#eef5f7"] },
+
+      // Loki 艺术与贴纸组（21）
+      { id: "loki-pop", name: "贴纸波普", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fff3e2","#fffdf8","#ff6b00","#1c1410"] },
+      { id: "loki-bauhaus", name: "包豪斯", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f2efe6","#f8f6f0","#d8232a","#141414"] },
+      { id: "loki-memphis", name: "孟菲斯", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fbf5ee","#fffdf9","#2f6df6","#1a1a1a"] },
+      { id: "loki-console", name: "创作台", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fbf9f4","#fffdf8","#fa6d46","#0b1319"] },
+      { id: "loki-nine", name: "九宫格", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f6f5e0","#fcfbf0","#c73f55","#0e0d0e"] },
+      { id: "loki-navkit", name: "导航件", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f4f2ec","#fbfaf5","#ab4a22","#111619"] },
+      { id: "loki-die", name: "模切贴纸", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fdfcfa","#ffffff","#b04a33","#21191b"] },
+      { id: "loki-egg", name: "彩蛋", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f3f2eb","#fbfaf4","#733436","#191b23"] },
+      { id: "loki-wire", name: "线框稿", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f2f1ec","#fbfaf6","#2f7a7a","#110f13"] },
+      { id: "loki-sticker", name: "音乐贴纸", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f7f5eb","#fdfcf6","#b03d24","#1f191b"] },
+      { id: "loki-manual", name: "现场手册", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f6f5f0","#fcfbf7","#b03d36","#202024"] },
+      { id: "loki-wall", name: "留言墙", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fdfcf4","#fffefa","#ad4322","#121114"] },
+      { id: "loki-guide", name: "入场指南", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fbf6ee","#fffdf8","#b8441a","#120f0f"] },
+      { id: "loki-mint", name: "薄荷手账", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#e6f0ea","#ffffff","#1e846c","#14312a"] },
+      { id: "loki-butter", name: "黄油海报", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#fceccb","#fffdf6","#c9761f","#3b2a17"] },
+      { id: "loki-rose", name: "玫瑰纸片", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f6e2e3","#fffafa","#c4495f","#4a2733"] },
+      { id: "loki-ticket", name: "通行证票根", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#eae4d6","#f8f4ea","#e2541f","#1b1f22"] },
+      { id: "urban-collage", name: "拼贴", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#e9dfc7","#f9f2e5","#8648d7","#161616"] },
+      { id: "retro-poster", name: "海报", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f4e5bd","#fff9e9","#f5422a","#173a89"] },
+      { id: "doodle-studio", name: "涂鸦", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f8f5ed","#fffef9","#ff4b19","#111111"] },
+      { id: "poster-stream", name: "展流", source: "loki", group: "Loki · 艺术与贴纸组", care: false, swatches: ["#f6f5f2","#ffffff","#d23f31","#1c1c1b"] },
+    ];
+
+    const IGNORED_DIRS = new Set(["_模板", "workbench", "loki-themes", ".obsidian", ".git", ".trash", "node_modules", "__pycache__"]);
+    const CORE_ORDER = [
+      "03-当前进度.md", "进度.md",
+      "00-总纲与世界观.md", "00_设定集.md", "00_圣经.md", "00_设定与大纲.md",
+      "01-人物状态卡.md", "01_大纲.md",
+      "02-伏笔与时间线.md", "02_卷二卷三细纲.md"
+    ];
+    const CHAPTER_DIRS = new Set(["04-正文", "正文", "番外"]);
+    const MODE_NAMES = { studio: "工作台", split: "双栏对照", zen: "禅意专注", typewriter: "打字机", reader: "沉浸阅读" };
+
+    const prefs = JSON.parse(localStorage.getItem("writer:prefs49") || "{}");
+    const state = {
+      rootHandle: null, recentDirs: [], books: [], assets: { styleCards: [], skills: [] }, currentBook: null, currentFile: null,
+      wsMode: prefs.wsMode || "studio", studioEditing: false, dirty: false, savedText: "",
+      themeId: prefs.themeId || "loki-ease",
+      skinFilter: "all", skinQuery: "",
+      fontSize: prefs.fontSize || 16.5, lineHeight: prefs.lineHeight || 1.95,
+      fontStyle: prefs.fontStyle || "serif", editorWidth: prefs.editorWidth || "760px",
+      indentP: prefs.indentP !== false,
+    };
+
     const $ = (id) => document.getElementById(id);
-    const prefs = JSON.parse(localStorage.getItem("loki:novel:prefs") || "{}");
-    const state = { root: null, books: [], rulesText: "", book: null, file: null, mode: prefs.mode || "studio", dirty: false, saved: "" };
-    const toast = (m) => { const el = $("toast"); el.textContent = m; el.classList.add("show"); clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove("show"), 2200); };
-    const esc = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    const stripFm = (s) => s.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, "");
-    const countWords = (s) => stripFm(s).replace(/[#>*`_\-\[\]()|]/g, "").replace(/\s+/g, "").length;
-    const readText = async (h) => await (await h.getFile()).text();
-    const writeText = async (h, t) => { const w = await h.createWritable(); await w.write(t); await w.close(); };
 
-    function renderMd(raw) {
-      return stripFm(raw).split(/\r?\n/).map((line) => {
-        if (!line.trim()) return "";
-        const hm = line.match(/^(#{1,3})\s+(.*)$/);
-        if (hm) return `<h${hm[1].length}>${esc(hm[2])}</h${hm[1].length}>`;
-        if (line.startsWith(">")) return `<blockquote>${esc(line.replace(/^>\s?/, ""))}</blockquote>`;
-        return `<p>${esc(line).replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")}</p>`;
+    function savePrefs() {
+      localStorage.setItem("writer:prefs49", JSON.stringify({
+        wsMode: state.wsMode, themeId: state.themeId,
+        fontSize: state.fontSize, lineHeight: state.lineHeight,
+        fontStyle: state.fontStyle, editorWidth: state.editorWidth, indentP: state.indentP,
+      }));
+    }
+
+    function toast(msg) {
+      const el = $("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(toast._t);
+      toast._t = setTimeout(() => el.classList.remove("show"), 2200);
+    }
+
+    function applyTheme(themeId) {
+      const t = ALL_THEMES.find((x) => x.id === themeId) || ALL_THEMES[0];
+      state.themeId = t.id;
+      document.documentElement.dataset.theme = t.id;
+      $("statusSkin").textContent = `皮肤：${t.name}`;
+      document.querySelectorAll(".theme-card").forEach((el) => el.classList.toggle("active", el.dataset.themeId === t.id));
+      savePrefs();
+    }
+
+    function renderThemes() {
+      const q = state.skinQuery.trim().toLowerCase();
+      const list = ALL_THEMES.filter((t) => {
+        if (state.skinFilter === "care" && !t.care) return false;
+        if (state.skinFilter === "loki" && t.source !== "loki") return false;
+        if (state.skinFilter === "writer" && t.source !== "writer") return false;
+        if (q && !t.name.toLowerCase().includes(q) && !t.id.toLowerCase().includes(q) && !t.group.toLowerCase().includes(q)) return false;
+        return true;
+      });
+
+      const groups = {};
+      list.forEach((t) => {
+        if (!groups[t.group]) groups[t.group] = [];
+        groups[t.group].push(t);
+      });
+
+      const container = $("themeGroups");
+      if (list.length === 0) {
+        container.innerHTML = '<div style="padding:18px;text-align:center;color:var(--text-muted);font-size:13px;">没有匹配的皮肤</div>';
+        return;
+      }
+
+      container.innerHTML = Object.entries(groups).map(([gName, items]) => `
+        <div class="theme-group-title"><span>${gName}</span><span>${items.length}</span></div>
+        <div class="theme-grid">
+          ${items.map((t) => `
+            <button class="theme-card ${t.id === state.themeId ? "active" : ""}" data-theme-id="${t.id}">
+              <div class="swatch-row">
+                <div class="swatch-dots">
+                  ${t.swatches.map((c) => `<span class="swatch-dot" style="background:${c}"></span>`).join("")}
+                </div>
+                <span class="source-tag">${t.source === "loki" ? "Loki" : "写作"}</span>
+              </div>
+              <div class="theme-name">${t.name}</div>
+            </button>
+          `).join("")}
+        </div>
+      `).join("");
+
+      container.querySelectorAll(".theme-card").forEach((card) => {
+        card.onclick = () => {
+          applyTheme(card.dataset.themeId);
+          toast("已切换皮肤：" + ALL_THEMES.find((x) => x.id === card.dataset.themeId)?.name);
+        };
+      });
+    }
+
+    function renderQuickSkins() {
+      const picks = ["loki-ease", "loki-moss", "writer-sage", "writer-amber-night", "loki-pop", "loki-desk", "writer-cyber"];
+      $("quickSkins").innerHTML = picks.map((id) => {
+        const t = ALL_THEMES.find((x) => x.id === id);
+        return `<button class="btn loki-button-secondary" data-quick="${id}" style="border-radius:999px;padding:4px 11px;font-size:12px;"><span class="swatch-dot" style="width:11px;height:11px;background:${t.swatches[0]};border-color:${t.swatches[2]}"></span>${t.name}</button>`;
       }).join("");
+      $("quickSkins").querySelectorAll("button").forEach((b) => {
+        b.onclick = () => applyTheme(b.dataset.quick);
+      });
     }
 
-    function applyTheme(t) {
-      document.documentElement.dataset.theme = t;
-      $("themeSelect").value = t;
-      $("statusTheme").textContent = "主题：" + $("themeSelect").selectedOptions[0].textContent;
-      prefs.theme = t; localStorage.setItem("loki:novel:prefs", JSON.stringify(prefs));
+    function applyTypography() {
+      const r = document.documentElement.style;
+      r.setProperty("--editor-size", state.fontSize + "px");
+      r.setProperty("--editor-lh", String(state.lineHeight));
+      r.setProperty("--editor-width", state.editorWidth);
+      const fontMap = { serif: "var(--font-serif)", sans: "var(--font-sans)", mono: "var(--font-mono)" };
+      r.setProperty("--editor-font", fontMap[state.fontStyle] || fontMap.serif);
+
+      $("lblSize").textContent = state.fontSize + "px";
+      $("rngSize").value = state.fontSize;
+      $("lblLh").textContent = Number(state.lineHeight).toFixed(2);
+      $("rngLh").value = state.lineHeight;
+      $("btnToggleIndent").textContent = state.indentP ? "已开启" : "已关闭";
+      document.querySelectorAll("#fontPills button").forEach((b) => b.classList.toggle("active", b.dataset.font === state.fontStyle));
+      document.querySelectorAll("#widthPills button").forEach((b) => b.classList.toggle("active", b.dataset.width === state.editorWidth));
+      $("previewProse").classList.toggle("indent-p", state.indentP && state.currentFile?.isChapter);
+      savePrefs();
     }
 
-    function applyMode(m) {
-      state.mode = m;
-      document.body.classList.remove("mode-studio", "mode-split", "mode-zen", "mode-reader");
-      document.body.classList.add("mode-" + m);
-      document.querySelectorAll("#modeBar button").forEach((b) => b.classList.toggle("active", b.dataset.mode === m));
-      $("paneRef").classList.toggle("hidden", m !== "split");
-      $("refSelect").classList.toggle("hidden", m !== "split");
-      $("paneEdit").classList.toggle("hidden", m === "reader");
-      $("paneRead").classList.toggle("hidden", m !== "reader");
-      if (m === "reader") $("readProse").innerHTML = renderMd($("editorArea").value);
-      prefs.mode = m; localStorage.setItem("loki:novel:prefs", JSON.stringify(prefs));
+    function applyWsMode(mode) {
+      state.wsMode = mode;
+      document.body.classList.remove("mode-studio", "mode-split", "mode-zen", "mode-typewriter", "mode-reader");
+      document.body.classList.add("mode-" + mode);
+      document.querySelectorAll("#modeBar button").forEach((b) => b.classList.toggle("active", b.dataset.wsMode === mode));
+      $("statusMode").textContent = `模式：${MODE_NAMES[mode] || mode}`;
+      $("zenModeLabel").textContent = mode === "typewriter" ? "⌨️ 打字机模式" : "🧘 禅意专注";
+
+      const showEditor = mode === "split" || mode === "zen" || mode === "typewriter" || (mode === "studio" && state.studioEditing);
+      const showPreview = mode === "split" || mode === "reader" || (mode === "studio" && !state.studioEditing);
+
+      $("paneEditor").classList.toggle("hidden", !showEditor);
+      $("panePreview").classList.toggle("hidden", !showPreview);
+      $("splitRefBar").classList.toggle("hidden", mode !== "split");
+      if (mode === "split") { populateSplitRefSelect(); renderSplitRefPane(); }
+      else { renderCurrentDoc($("editorArea").value || state.savedText || ""); }
+
+      if ((mode === "split" || mode === "zen" || mode === "typewriter" || (mode === "studio" && state.studioEditing)) && state.currentFile) {
+        setTimeout(() => $("editorArea").focus(), 40);
+      }
+      savePrefs();
     }
 
-    async function scanBooks(keepBook, keepPath) {
-      if (!state.root) return;
-      const books = [];
-      let rulesText = "";
-      for await (const [name, h] of state.root.entries()) {
-        if (h.kind !== "directory" || name.startsWith(".")) continue;
-        if (name === "_写作规则与Skill") {
-          for await (const [rn, rh] of h.entries()) {
-            if (rh.kind === "file" && rn.endsWith(".md") && rn.toLowerCase() !== "readme.md") rulesText += `\n\n### ${rn}\n` + (await readText(rh));
-          }
+    /* Markdown & Obsidian helpers */
+    function parseFrontmatter(raw) {
+      const m = raw.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+      if (!m) return { meta: {}, body: raw };
+      const meta = {};
+      let listKey = null;
+      for (const line of m[1].split(/\r?\n/)) {
+        const lm = line.match(/^\s*-\s+(.*)$/);
+        if (lm && listKey) {
+          if (!Array.isArray(meta[listKey])) meta[listKey] = [];
+          meta[listKey].push(lm[1].trim().replace(/^["']|["']$/g, ""));
           continue;
         }
-        if (name.startsWith("_")) continue;
-        const core = [], chapters = [];
-        for await (const [fn, fh] of h.entries()) {
-          if (fh.kind === "file" && fn.endsWith(".md")) core.push({ path: fn, name: fn.replace(/\.md$/, ""), handle: fh, words: countWords(await readText(fh)) });
-          else if (fh.kind === "directory" && (fn === "正文" || fn === "04-正文")) {
-            for await (const [cn, ch] of fh.entries()) {
-              if (ch.kind === "file" && cn.endsWith(".md")) chapters.push({ path: `${fn}/${cn}`, name: cn.replace(/\.md$/, ""), handle: ch, words: countWords(await readText(ch)) });
+        const kv = line.match(/^([A-Za-z0-9_-]+)\s*:\s*(.*)$/);
+        if (kv) {
+          const k = kv[1].trim();
+          const v = kv[2].trim().replace(/^["']|["']$/g, "");
+          if (v === "") { meta[k] = []; listKey = k; }
+          else { meta[k] = v; listKey = null; }
+        }
+      }
+      return { meta, body: raw.slice(m[0].length) };
+    }
+
+    function countWords(raw) {
+      const { body } = parseFrontmatter(raw);
+      return body.replace(/```[\s\S]*?```/g, "").replace(/[#>*`_\-\[\]()|]/g, "").replace(/\s+/g, "").length;
+    }
+
+    function parseForeshadowing(ledgerRaw) {
+      const items = [];
+      for (const line of ledgerRaw.split(/\r?\n/)) {
+        if (!line.trim().startsWith("|")) continue;
+        const cols = line.split("|").map((c) => c.trim()).filter(Boolean);
+        if (cols.length < 5) continue;
+        if (cols[0] === "编号" || cols[0].startsWith(":---") || cols[0].startsWith("---")) continue;
+        if (cols[1].startsWith("（示例）")) continue;
+        const status = cols[4] || "";
+        if (status.includes("待回收") || status.includes("铺垫")) {
+          items.push({ id: cols[0], content: cols[1], planted: cols[2], window: cols[3], status });
+        }
+      }
+      return items;
+    }
+
+    function escapeHtml(s) { return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+    function renderInline(text) {
+      return escapeHtml(text)
+        .replace(/\[\[([^\]]+)\]\]/g, (_, target) => {
+          const clean = target.split("|")[0].trim();
+          const label = (target.split("|")[1] || clean).trim();
+          return `<a class="wikilink" data-wiki="${escapeHtml(clean)}">${escapeHtml(label)}</a>`;
+        })
+        .replace(/`([^`]+)`/g, "<code>$1</code>")
+        .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+    }
+
+    function renderMarkdown(raw) {
+      const { body } = parseFrontmatter(raw);
+      const lines = body.split(/\r?\n/);
+      let html = "", inList = false, inCode = false, inTable = false;
+      const closeBlocks = () => {
+        if (inList) { html += "</ul>"; inList = false; }
+        if (inTable) { html += "</tbody></table>"; inTable = false; }
+      };
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.trim().startsWith("```")) {
+          closeBlocks();
+          if (!inCode) { html += '<pre class="loki-code-block"><code>'; inCode = true; }
+          else { html += "</code></pre>"; inCode = false; }
+          continue;
+        }
+        if (inCode) { html += escapeHtml(line) + "\n"; continue; }
+        if (line.trim().startsWith("|") && line.trim().endsWith("|")) {
+          const cells = line.trim().slice(1, -1).split("|").map((c) => c.trim());
+          const nextLine = (lines[i + 1] || "").trim();
+          if (!inTable && nextLine.startsWith("|") && nextLine.includes("---")) {
+            closeBlocks();
+            html += "<table><thead><tr>" + cells.map((c) => `<th>${renderInline(c)}</th>`).join("") + "</tr></thead><tbody>";
+            inTable = true; i++; continue;
+          }
+          if (inTable) {
+            html += "<tr>" + cells.map((c) => `<td>${renderInline(c)}</td>`).join("") + "</tr>";
+            continue;
+          }
+        } else if (inTable) { html += "</tbody></table>"; inTable = false; }
+        if (!line.trim()) { closeBlocks(); continue; }
+        const hm = line.match(/^(#{1,4})\s+(.*)$/);
+        if (hm) { closeBlocks(); html += `<h${hm[1].length}>${renderInline(hm[2])}</h${hm[1].length}>`; continue; }
+        if (line.startsWith(">")) { closeBlocks(); html += `<blockquote>${renderInline(line.replace(/^>\s?/, ""))}</blockquote>`; continue; }
+        const lm = line.match(/^\s*[-*]\s+(.*)$/);
+        if (lm) { if (!inList) { html += "<ul>"; inList = true; } html += `<li>${renderInline(lm[1])}</li>`; continue; }
+        closeBlocks();
+        html += `<p>${renderInline(line)}</p>`;
+      }
+      closeBlocks();
+      if (inCode) html += "</code></pre>";
+      return html || '<p style="color:var(--text-muted)">（空白文档）</p>';
+    }
+
+    let serviceMode = false, workspaceEpoch = 0;
+    async function localAPI(path, data) {
+      const response = await fetch(path, data ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(data)} : {});
+      const result = await response.json();
+      if (!response.ok) throw Error(result.error || "目录服务不可用");
+      return result;
+    }
+    function remoteDir(ws, path = "") {
+      const join = name => [path, name].filter(Boolean).join("/");
+      return {
+        name:path.split("/").pop() || ws.name, ws, path,
+        getDirectoryHandle: async name => remoteDir(ws, join(name)),
+        getFileHandle: async (name, options) => ({ws, path:join(name), createOnly:Boolean(options?.create)}),
+        async *entries() {
+          const {books} = await localAPI("/api/books?workspace=" + encodeURIComponent(ws.id));
+          for (const book of books) {
+            for (const file of book.chapters) {
+              const parts = (book.name + "/" + file.path).split("/");
+              const name = parts.pop();
+              if (parts.join("/") === path) yield [name, {kind:"file"}];
             }
           }
         }
-        core.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
-        chapters.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
-        books.push({ name, dirHandle: h, core, chapters });
+      };
+    }
+    async function loadShelf(preserve, openPath) {
+      const epoch = ++workspaceEpoch;
+      const root = state.rootHandle;
+      const oldBook = preserve && state.currentBook?.name;
+      const oldFile = openPath ?? (preserve && state.currentFile?.path);
+      const data = await localAPI("/api/books?workspace=" + encodeURIComponent(root.ws.id));
+      const books = data.books || [];
+      if (epoch !== workspaceEpoch) return;
+      const sort = (a,b) => a.name.localeCompare(b.name,"zh-Hans-CN",{numeric:true});
+      const rank = f => CORE_ORDER.includes(f.path) ? CORE_ORDER.indexOf(f.path) : 999;
+      for (const book of books) {
+        book.dirHandle = book.isLooseBucket ? root : remoteDir(root.ws, book.name);
+        book.openForeshadowing = parseForeshadowing(book.ledger);
+        book.coreFiles.sort((a,b) => rank(a)-rank(b) || sort(a,b));
+        book.chapters.sort(sort);
+        for (const f of [...book.coreFiles,...book.chapters]) f.handle = await book.dirHandle.getFileHandle(f.path);
       }
-      books.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN"));
-      state.books = books; state.rulesText = rulesText.trim();
-      $("dirBadge").textContent = state.root.name;
+      books.sort((a,b) => Number(b.isLooseBucket)-Number(a.isLooseBucket) || sort(a,b));
+      state.books = books;
+      let rawAssets = data.assets || null;
+      const attachAssetHandles = async (list) => Promise.all((list || []).map(async (item) => ({...item, handle: await root.getFileHandle(item.path)})));
+      state.assets = {
+        styleCards: await attachAssetHandles(rawAssets?.styleCards),
+        skills: await attachAssetHandles(rawAssets?.skills),
+        missingFromServer: !rawAssets,
+      };
+      renderAssetControls();
+      $("dirBadge").textContent = root.name;
       $("emptyState").classList.add("hidden");
       $("workspace").classList.remove("hidden");
       $("btnRefresh").disabled = false;
-
-      const sel = $("bookSelect"); sel.innerHTML = "";
-      books.forEach((b) => { const o = document.createElement("option"); o.value = b.name; o.textContent = b.name; sel.appendChild(o); });
-      const target = books.find((b) => b.name === keepBook) || books[0] || null;
-      selectBook(target, keepPath);
+      renderRecentDirs();
+      await renderBookSelect(oldBook || books.find(b => !b.isLooseBucket && (b.coreFiles.length || b.chapters.length))?.name,oldFile);
     }
-
-    function selectBook(book, preferPath) {
-      state.book = book;
-      updateCliButtons();
-      if (!book) return;
-      $("bookSelect").value = book.name;
-      const makeBtn = (f) => {
-        const b = document.createElement("button");
-        b.className = "nav-btn" + (state.file?.path === f.path ? " active" : "");
-        b.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(f.name)}</span><span class="nav-meta">${f.words}字</span>`;
-        b.onclick = () => openDoc(f);
-        return b;
-      };
-      $("coreNav").innerHTML = ""; book.core.forEach((f) => $("coreNav").appendChild(makeBtn(f)));
-      $("chapNav").innerHTML = ""; book.chapters.forEach((f) => $("chapNav").appendChild(makeBtn(f)));
-      const rSel = $("refSelect"); rSel.innerHTML = "";
-      book.core.forEach((f) => { const o = document.createElement("option"); o.value = f.path; o.textContent = "参考：" + f.name; rSel.appendChild(o); });
-      if (book.core[0]) readText(book.core[0].handle).then((t) => { $("refProse").innerHTML = renderMd(t); });
-
-      const all = [...book.chapters, ...book.core];
-      const next = all.find((f) => f.path === preferPath) || book.chapters[book.chapters.length - 1] || book.core[0];
-      if (next) openDoc(next);
+    async function enterLocal(ws) {
+      if (state.dirty) return toast("请先保存当前文稿再切换目录");
+      state.rootHandle = remoteDir(ws);
+      await loadShelf(false);
     }
-
-    async function openDoc(f) {
-      if (state.dirty && !confirm("当前文档未保存，确定切换？")) return;
-      state.file = f;
-      const text = await readText(f.handle);
-      state.saved = text; state.dirty = false;
-      $("docTitle").textContent = f.name;
-      $("editorArea").value = text;
-      $("btnSave").disabled = true;
-      $("statusSaved").textContent = "已同步";
-      const w = countWords(text); $("statusWords").textContent = `${w} 字`; $("zenWords").textContent = `${w} 字`;
-      if (state.mode === "reader") $("readProse").innerHTML = renderMd(text);
-      selectBookSilentHighlight();
-      updateCliButtons();
-    }
-
-    function selectBookSilentHighlight() {
-      document.querySelectorAll(".nav-btn").forEach((b) => b.classList.toggle("active", b.firstChild.textContent === state.file?.name));
-    }
-
-    async function saveDoc() {
-      if (!state.file) return;
-      const val = $("editorArea").value;
-      await writeText(state.file.handle, val);
-      state.saved = val; state.dirty = false;
-      $("btnSave").disabled = true;
-      $("statusSaved").textContent = "已保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      toast("已写回本地 Markdown");
-      await scanBooks(state.book?.name, state.file.path);
-    }
-
-    async function buildPack(kind) {
-      if (!state.book) return;
-      const coreText = (await Promise.all(state.book.core.map(async (f) => `## ${f.name}\n${(await readText(f.handle)).trim()}`))).join("\n\n");
-      const lastChap = state.book.chapters[state.book.chapters.length - 1];
-      const lastTail = lastChap ? (await readText(lastChap.handle)).slice(-1200) : "";
-      const cur = $("editorArea").value;
-      const rules = state.rulesText ? `\n\n## 自定义写作规则\n${state.rulesText}` : "";
-      const prompts = {
-        outline: `# 为《${state.book.name}》生成下一章细纲\n请结合以下设定、人物状态、伏笔与上一章结尾，输出 3~5 个场景节拍（不写完整正文）：\n\n${coreText}${rules}\n\n## 上一章结尾\n${lastTail}`,
-        continue: `# 为《${state.book.name}》续写下一章正文\n请严格遵守设定与人物 OOC 红线，直接交付纯正文 Markdown：\n\n${coreText}${rules}\n\n## 上一章结尾\n${lastTail}`,
-        polish: `# 润色《${state.book.name}》当前章\n只优化表达、动作细节与节奏，不改动既定剧情与人物关系：\n\n${rules}\n\n## 当前章正文\n${cur}`,
-        sync: `# 根据本章定稿更新档案\n请基于下方最新章节，给出需要更新到「01-人物状态卡」「02-伏笔与时间线」「03-当前进度」的增量修改：\n\n## 最新章节\n${cur}`,
-      };
-      return prompts[kind];
-    }
-    async function copyPack(kind) {
-      if (!state.book) return;
-      await navigator.clipboard.writeText(await buildPack(kind));
-      toast("已复制零 API 写作包，直接发给你的 AI Agent 即可");
-    }
-
-    async function openDir() {
-      if (!window.showDirectoryPicker) return alert("请使用 Chrome、Edge 或 Arc 浏览器打开。");
+    async function updateLocalDirectories(action, value) {
+      if (state.dirty) return toast("请先保存当前文稿");
       try {
-        state.root = await window.showDirectoryPicker({ mode: "readwrite" });
-        await scanBooks();
-      } catch (e) { if (e.name !== "AbortError") toast("打开失败：" + e.message); }
+        const cfg = await localAPI("/api/workspaces", action === "add" ? {action,path:value} : {action,id:value});
+        state.recentDirs = cfg.workspaces;
+        const active = state.rootHandle?.ws?.id;
+        const next = action === "add" ? cfg.workspaces.at(-1) : cfg.workspaces.find(w => w.id === active) || cfg.workspaces.find(w => w.id === cfg.default);
+        if (next) await enterLocal(next);
+        else {
+          ++workspaceEpoch;
+          state.rootHandle = state.currentBook = state.currentFile = null;
+          state.books = [];
+          $("workspace").classList.add("hidden");
+          $("emptyState").classList.remove("hidden");
+          renderRecentDirs();
+        }
+      } catch(e) { toast(e.message); }
+    }
+    async function startShelf() {
+      if (location.protocol === "file:") {
+        try {
+          const reply = await fetch(bridge + "/", {method:"HEAD", signal:AbortSignal.timeout(1500)});
+          if (reply.ok) { location.replace(bridge + "/"); return; }
+        } catch {}
+      } else {
+        try {
+          const cfg = await localAPI("/api/workspaces");
+          serviceMode = true;
+          state.recentDirs = cfg.workspaces;
+          renderRecentDirs();
+          const ws = cfg.workspaces.find(w => w.id === cfg.default) || cfg.workspaces[0];
+          if (ws) await enterLocal(ws);
+          return;
+        } catch(e) { if (serviceMode) { toast(e.message); return; } }
+      }
+      const list = await loadRecentDirs();
+      if (list.length) await openSavedDirectory(list[0], true);
     }
 
-    $("btnOpenDir").onclick = openDir; $("btnOpenBig").onclick = openDir;
-    $("btnRefresh").onclick = () => scanBooks(state.book?.name, state.file?.path).then(() => toast("已刷新"));
-    $("bookSelect").onchange = (e) => selectBook(state.books.find((b) => b.name === e.target.value));
-    $("refSelect").onchange = async (e) => { const f = state.book?.core.find((x) => x.path === e.target.value); if (f) $("refProse").innerHTML = renderMd(await readText(f.handle)); };
-    $("btnSave").onclick = saveDoc; $("btnZenSave").onclick = saveDoc;
-    $("themeSelect").onchange = (e) => applyTheme(e.target.value);
-    document.querySelectorAll("#modeBar button").forEach((b) => { b.onclick = () => applyMode(b.dataset.mode); });
-    $("btnExitZen").onclick = () => applyMode("studio");
-    $("btnPackOutline").onclick = () => copyPack("outline");
-    $("btnPackContinue").onclick = () => copyPack("continue");
-    $("btnPackPolish").onclick = () => copyPack("polish");
-    $("btnPackSync").onclick = () => copyPack("sync");
+    async function readHandleText(h) {
+      if (h.ws) return (await localAPI("/api/file?" + new URLSearchParams({workspace:h.ws.id,path:h.path}))).text;
+      return await (await h.getFile()).text();
+    }
+    async function writeHandleText(h, text, expectedText) {
+      if (h.ws) {
+        await localAPI("/api/file", {workspace:h.ws.id,path:h.path,text,createOnly:!!h.createOnly,...(expectedText !== undefined ? {expectedText} : {})});
+        h.createOnly = false;
+        return;
+      }
+      if (expectedText !== undefined && await readHandleText(h) !== expectedText) throw Error("文件已被其他窗口修改，请刷新后重试");
+      const w = await h.createWritable();
+      await w.write(text);
+      await w.close();
+    }
 
-    $("btnNewBook").onclick = async () => {
-      if (!state.root) return;
-      const title = prompt("输入新作品书名：");
-      if (!title || !title.trim()) return;
-      const clean = title.trim().replace(/[\\/:*?"<>|]/g, "");
-      const dir = await state.root.getDirectoryHandle(clean, { create: true });
-      await writeText(await dir.getFileHandle("00-总纲与世界观.md", { create: true }), `# ${clean} · 总纲与世界观\n\n- 核心梗概：\n`);
-      await writeText(await dir.getFileHandle("01-人物状态卡.md", { create: true }), `# ${clean} · 人物状态卡\n`);
-      await writeText(await dir.getFileHandle("02-伏笔与时间线.md", { create: true }), `# ${clean} · 伏笔与时间线\n`);
-      await writeText(await dir.getFileHandle("03-当前进度.md", { create: true }), `# ${clean} · 当前进度\n`);
-      const chDir = await dir.getDirectoryHandle("正文", { create: true });
-      await writeText(await chDir.getFileHandle("第01章.md", { create: true }), `# 第 1 章\n\n`);
-      await scanBooks(clean, "正文/第01章.md");
-      toast("已新建作品：" + clean);
-    };
+    function isCoreArchiveFile(entryName) {
+      if (CORE_ORDER.includes(entryName)) return true;
+      return /(总纲|设定|圣经|大纲|细纲|人物小传|进度|证据链|一致性|全本)/.test(entryName);
+    }
 
-    $("btnNewChap").onclick = async () => {
-      if (!state.book) return;
-      const num = state.book.chapters.length + 1;
-      const fn = `第${String(num).padStart(2, "0")}章.md`;
-      const chDir = await state.book.dirHandle.getDirectoryHandle("正文", { create: true });
-      await writeText(await chDir.getFileHandle(fn, { create: true }), `# 第 ${num} 章\n\n`);
-      await scanBooks(state.book.name, `正文/${fn}`);
-      toast("已新建：" + fn);
-    };
+    async function scanBookDir(name, dirHandle) {
+      const coreFiles = [], chapters = [];
+      let totalWords = 0, ledgerRaw = "", chapterDirName = "04-正文";
+      for await (const [entryName, handle] of dirHandle.entries()) {
+        if (handle.kind === "file" && entryName.endsWith(".md") && entryName.toLowerCase() !== "readme.md") {
+          const text = await readHandleText(handle);
+          const w = countWords(text);
+          if (entryName === "02-伏笔与时间线.md") ledgerRaw = text;
+          if (isCoreArchiveFile(entryName)) {
+            coreFiles.push({ path: entryName, name: entryName.replace(/\.md$/, ""), handle, isChapter: false, words: w });
+          } else {
+            totalWords += w;
+            chapters.push({ path: entryName, name: entryName.replace(/\.md$/, ""), handle, isChapter: true, words: w });
+          }
+        } else if (handle.kind === "directory" && CHAPTER_DIRS.has(entryName)) {
+          if (entryName === "正文" && chapterDirName === "04-正文") chapterDirName = "正文";
+          for await (const [chName, chHandle] of handle.entries()) {
+            if (chHandle.kind === "file" && chName.endsWith(".md") && chName.toLowerCase() !== "readme.md") {
+              const text = await readHandleText(chHandle);
+              const w = countWords(text);
+              totalWords += w;
+              const prefix = entryName === "番外" ? "【番外】" : "";
+              chapters.push({ path: `${entryName}/${chName}`, name: prefix + chName.replace(/\.md$/, ""), handle: chHandle, isChapter: true, words: w });
+            }
+          }
+        }
+      }
+      coreFiles.sort((a, b) => {
+        const ia = CORE_ORDER.indexOf(a.path), ib = CORE_ORDER.indexOf(b.path);
+        if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
+        return a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true });
+      });
+      chapters.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+      return { name, dirHandle, chapterDirName, coreFiles, chapters, totalWords, openForeshadowing: parseForeshadowing(ledgerRaw) };
+    }
 
-    $("editorArea").addEventListener("input", () => {
-      const val = $("editorArea").value;
-      state.dirty = val !== state.saved;
-      $("btnSave").disabled = !state.dirty;
-      $("statusSaved").textContent = state.dirty ? "未保存" : "已同步";
-      const w = countWords(val); $("statusWords").textContent = `${w} 字`; $("zenWords").textContent = `${w} 字`;
-    });
-    $("rangeSize").oninput = (e) => { document.documentElement.style.setProperty("--editor-size", e.target.value + "px"); $("lblSize").textContent = e.target.value; };
-    $("rangeLh").oninput = (e) => { document.documentElement.style.setProperty("--editor-lh", e.target.value); $("lblLh").textContent = e.target.value; };
-    window.addEventListener("keydown", (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s" && state.file && state.dirty) { e.preventDefault(); saveDoc(); }
-      else if (e.key === "Escape" && state.mode === "zen") applyMode("studio");
-    });
+    async function scanWorkspace(preserve = true, openPath = null) {
+      if (!state.rootHandle) return;
+      if (serviceMode) return loadShelf(preserve, openPath);
+      const prevBook = preserve ? state.currentBook?.name : null;
+      const prevFile = preserve ? state.currentFile?.path : null;
+      const books = [];
+      const looseFiles = [];
+      const styleCards = [], skills = [];
+      let looseWords = 0;
 
-    // Models are supplied exclusively by the installed clients via /api/engines.
-    const bridge = location.protocol === "http:" ? location.origin : "";
-    const engineLabels = {agy: "Antigravity", codex: "Codex", cola: "Cola"};
-    let engineCatalog = {}, writing = false, generated = null;
+      const scanAssetFolder = async (dirName, dirHandle, target) => {
+        for await (const [fn, fh] of dirHandle.entries()) {
+          if (fh.kind === "file" && fn.endsWith(".md") && fn.toLowerCase() !== "readme.md" && !fn.startsWith(".")) {
+            target.push({ path: `${dirName}/${fn}`, name: fn.replace(/\.md$/, ""), handle: fh });
+          }
+        }
+        target.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+      };
+
+      for await (const [name, handle] of state.rootHandle.entries()) {
+        if (handle.kind === "directory" && name === "_style-cards") {
+          await scanAssetFolder(name, handle, styleCards);
+        } else if (handle.kind === "directory" && name === "_写作方法论") {
+          await scanAssetFolder(name, handle, skills);
+        } else if (handle.kind === "directory" && !name.startsWith(".") && !name.startsWith("_") && !IGNORED_DIRS.has(name)) {
+          books.push(await scanBookDir(name, handle));
+        } else if (handle.kind === "file" && name.endsWith(".md") && name.toLowerCase() !== "readme.md") {
+          const text = await readHandleText(handle);
+          const w = countWords(text);
+          looseWords += w;
+          looseFiles.push({ path: name, name: name.replace(/\.md$/, ""), handle, isChapter: !name.startsWith("00-"), words: w });
+        }
+      }
+      books.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN"));
+      if (looseFiles.length > 0) {
+        looseFiles.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
+        books.unshift({
+          name: "根目录总览 / 散落文档",
+          dirHandle: state.rootHandle,
+          chapterDirName: "",
+          coreFiles: looseFiles.filter((f) => !f.isChapter),
+          chapters: looseFiles.filter((f) => f.isChapter),
+          totalWords: looseWords,
+          openForeshadowing: [],
+          isLooseBucket: true,
+        });
+      }
+      state.books = books;
+      state.assets = { styleCards, skills, missingFromServer: false };
+      renderAssetControls();
+      $("dirBadge").textContent = state.rootHandle.name;
+      $("emptyState").classList.add("hidden");
+      $("workspace").classList.remove("hidden");
+      $("btnRefresh").disabled = false;
+      renderRecentDirs();
+      await renderBookSelect(prevBook, openPath ?? prevFile);
+    }
+
+    function renderBookSelect(preferBook, preferFile) {
+      const sel = $("bookSelect");
+      sel.innerHTML = "";
+      if (state.books.length === 0) {
+        const opt = document.createElement("option");
+        opt.textContent = "暂无作品（点右侧 + 新建）";
+        sel.appendChild(opt);
+        state.currentBook = null; state.currentFile = null;
+        $("btnCopyPack").disabled = true; $("btnCopyPackSide").disabled = true; $("btnToggleEdit").disabled = true;
+        $("coreNav").innerHTML = ""; $("chapterNav").innerHTML = "";
+        $("docTitle").textContent = "点左侧「+」创建第一部作品";
+        $("previewProse").innerHTML = "<p>目录已连接。点击左上角书架旁的 <strong>+</strong> 按钮即可按 Obsidian 模板新建第一部作品，或直接把你的写作卡发给 Gemini 帮你初始化。</p>";
+        updateRightPanel();
+        return;
+      }
+      state.books.forEach((b) => {
+        const opt = document.createElement("option");
+        opt.value = b.name;
+        opt.textContent = `📖 ${b.name}`;
+        sel.appendChild(opt);
+      });
+      const target = state.books.find((b) => b.name === preferBook) || state.books[0];
+      sel.value = target.name;
+      return selectBook(target.name, preferFile);
+    }
+
+    async function selectBook(bookName, preferFile = null) {
+      const book = state.books.find((b) => b.name === bookName);
+      if (!book) return;
+      if (chatRoot !== state.rootHandle || chatBook !== book.name) {
+        chatRoot = state.rootHandle; chatBook = book.name;
+        chatHistory = [];
+        undoSnapshots = {};
+        $("cliMessage").textContent = "";
+        renderChatLog();
+        updateCliButtons();
+      }
+      state.currentBook = book;
+      syncBookBindingUI();
+      $("btnCopyPack").disabled = false; $("btnCopyPackSide").disabled = false;
+      renderNav(); updateRightPanel();
+      const all = [...book.coreFiles, ...book.chapters];
+      const next = all.find((f) => f.path === preferFile) || all[0] || null;
+      if (next) await openFile(next);
+      else if (serviceMode) {
+        state.currentFile = null;
+        state.savedText = $("editorArea").value = "";
+        $("docTitle").textContent = book.name;
+        $("btnSave").disabled = $("btnToggleEdit").disabled = true;
+        renderCurrentDoc("");
+      }
+    }
+
+    function renderNav() {
+      const book = state.currentBook;
+      if (!book) return;
+      const makeBtn = (f) => {
+        const btn = document.createElement("button");
+        btn.className = "nav-btn loki-nav-item" + (state.currentFile?.path === f.path ? " loki-nav-item-active" : "");
+        btn.innerHTML = `<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(f.name)}</span><span class="nav-meta">${f.words}字</span>`;
+        btn.onclick = () => openFile(f);
+        return btn;
+      };
+      const c = $("coreNav"); c.innerHTML = ""; book.coreFiles.forEach((f) => c.appendChild(makeBtn(f)));
+      const ch = $("chapterNav"); ch.innerHTML = "";
+      if (book.chapters.length === 0) ch.innerHTML = '<div style="padding:6px 10px;font-size:12px;color:var(--text-muted)">暂无章节</div>';
+      else book.chapters.forEach((f) => ch.appendChild(makeBtn(f)));
+    }
+
+    function updateRightPanel() {
+      const book = state.currentBook;
+      $("statChapters").textContent = book ? book.chapters.length : 0;
+      $("statWords").textContent = book ? (book.totalWords >= 10000 ? (book.totalWords / 10000).toFixed(1) + "万" : book.totalWords) : 0;
+      $("statOpenForeshadow").textContent = book ? book.openForeshadowing.length : 0;
+      $("hintBookName").textContent = book ? book.name : "书名";
+      $("hintNextCh").textContent = book ? book.chapters.length + 1 : 1;
+
+      const listEl = $("foreshadowList");
+      if (!book || book.openForeshadowing.length === 0) {
+        listEl.innerHTML = '<span style="color:var(--text-muted)">暂无待回收伏笔</span>';
+        return;
+      }
+      listEl.innerHTML = book.openForeshadowing.map((f) => `
+        <div class="foreshadow-item">
+          <div class="f-head"><span>${escapeHtml(f.id)}</span><span>计划：${escapeHtml(f.window)}</span></div>
+          <div>${escapeHtml(f.content)}</div>
+        </div>
+      `).join("");
+    }
+
+    async function openFile(fileItem) {
+      if (state.dirty && !confirm("当前文档有未保存的改动，确定切换吗？")) return;
+      state.currentFile = fileItem;
+      const text = await readHandleText(fileItem.handle);
+      state.savedText = text; state.dirty = false;
+      lastAiBaseline = { filePath: fileItem.path, text, source: "打开时的原稿" };
+      $("docTitle").textContent = fileItem.name;
+      $("editorArea").value = text;
+      $("dirtyDot").classList.remove("show");
+      $("btnSave").disabled = true; $("btnToggleEdit").disabled = false;
+      $("statusSaved").textContent = "已同步";
+      renderCurrentDoc(text); renderNav(); applyWsMode(state.wsMode);
+    }
+
+    function renderCurrentDoc(text) {
+      const { meta } = parseFrontmatter(text);
+      const words = countWords(text);
+      const mins = Math.max(1, Math.round(words / 450));
+      $("statusWords").textContent = `${words} 字 · 约 ${mins} 分钟阅读`;
+      $("zenWords").textContent = `${words} 字`;
+
+      const metaBar = $("metaBar");
+      const entries = Object.entries(meta).filter(([, v]) => (Array.isArray(v) ? v.length > 0 : String(v).trim() !== ""));
+      if (entries.length > 0) {
+        metaBar.classList.remove("hidden");
+        metaBar.innerHTML = entries.map(([k, v]) => `<span class="meta-chip">${escapeHtml(k)}: <strong>${escapeHtml(Array.isArray(v) ? v.join(" · ") : String(v))}</strong></span>`).join("");
+      } else metaBar.classList.add("hidden");
+
+      if (state.wsMode === "split" && splitRefPath !== "__live__") return;
+      const prose = $("previewProse");
+      prose.classList.toggle("indent-p", state.indentP && state.currentFile?.isChapter);
+      prose.innerHTML = renderMarkdown(text);
+      prose.querySelectorAll("a.wikilink").forEach((a) => {
+        a.onclick = () => {
+          const target = a.dataset.wiki;
+          const all = [...(state.currentBook?.coreFiles || []), ...(state.currentBook?.chapters || [])];
+          const match = all.find((f) => f.name === target || f.path === target || f.path === `${target}.md`);
+          if (match) openFile(match);
+          else toast(`未在当前作品找到 [[${target}]]`);
+        };
+      });
+    }
+
+    async function saveCurrentFile() {
+      if (!state.currentFile) return;
+      const text = $("editorArea").value;
+      try { await writeHandleText(state.currentFile.handle, text); }
+      catch (error) { toast("保存失败：" + error.message); return; }
+      state.savedText = text; state.dirty = false;
+      $("dirtyDot").classList.remove("show"); $("btnSave").disabled = true;
+      $("statusSaved").textContent = "已保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      toast("已写回本地文件");
+      await scanWorkspace(true);
+    }
+
+    let splitRefPath = "__live__";
+    function populateSplitRefSelect() {
+      const sel = $("splitRefSelect");
+      const book = state.currentBook;
+      if (!sel || !book) return;
+      const all = [...book.coreFiles, ...book.chapters];
+      sel.innerHTML = "";
+      sel.add(new Option("📖 当前章实时排版预览（默认跟随左栏）", "__live__"));
+      book.coreFiles.forEach((f) => sel.add(new Option("📌 档案 · " + f.name, f.path)));
+      book.chapters.forEach((f) => { if (f.path !== state.currentFile?.path) sel.add(new Option("📄 章节 · " + f.name, f.path)); });
+      if (splitRefPath !== "__live__" && !all.some((f) => f.path === splitRefPath)) {
+        splitRefPath = "__live__";
+      }
+      sel.value = splitRefPath;
+    }
+    async function renderSplitRefPane() {
+      if (state.wsMode !== "split") return;
+      const prose = $("previewProse");
+      if (splitRefPath === "__live__" || !state.currentBook) {
+        prose.classList.toggle("indent-p", state.indentP && state.currentFile?.isChapter);
+        prose.innerHTML = renderMarkdown($("editorArea").value || state.savedText || "");
+        return;
+      }
+      const all = [...state.currentBook.coreFiles, ...state.currentBook.chapters];
+      const target = all.find((f) => f.path === splitRefPath);
+      if (!target) { prose.innerHTML = '<p style="color:var(--text-muted)">请选择右栏要对照的设定或旧章节</p>'; return; }
+      try {
+        const text = await readHandleText(target.handle);
+        prose.classList.toggle("indent-p", state.indentP && target.isChapter);
+        prose.innerHTML = renderMarkdown(text);
+      } catch (e) { prose.innerHTML = '<p style="color:var(--text-muted)">读取对照文档失败</p>'; }
+    }
+    $("splitRefSelect").onchange = (e) => { splitRefPath = e.target.value; renderSplitRefPane(); };
+
+    const bridge = location.protocol === "file:" ? "http://127.0.0.1:8788" : location.origin;
+    const engineLabels = {agy: "Antigravity (agy)", codex: "Codex (codex)", cola: "Cola (cola)"};
+    let engineCatalog = {};
     let savedModels = {};
-    try { savedModels = JSON.parse(localStorage.getItem("loki:novel:cliModels") || "{}") || {}; } catch {}
-    function rememberModel() {
-      savedModels[$("cliEngine").value] = selectedModel();
-      localStorage.setItem("loki:novel:cliModels", JSON.stringify(savedModels));
-    }
-    function selectedModel() {
-      return $("cliModel").value === "__custom__" ? $("cliModelCustom").value.trim() : $("cliModel").value;
-    }
-    function updateCliButtons() {
-      const ready = !!engineCatalog[$("cliEngine").value]?.available;
-      document.querySelectorAll("[data-cli-kind]").forEach(b => b.disabled = writing || !ready || !state.book);
-      $("cliFill").disabled = writing || !generated || !state.file;
-      $("cliSaveNew").disabled = writing || !generated;
-      $("cliEngine").disabled = $("cliModel").disabled = writing;
-    }
+    try { savedModels = JSON.parse(localStorage.getItem("writer:cliModels") || "{}") || {}; } catch {}
     function refreshModelSelect() {
-      const info = engineCatalog[$("cliEngine").value];
+      const eng = $("cliEngine").value || "agy";
+      const info = engineCatalog[eng];
+      const sel = $("cliModel");
+      const custom = $("cliModelCustom");
       const models = Array.isArray(info?.models) ? info.models : [];
+      const defaultModel = info?.defaultModel || "";
       const canSelect = info?.supportsModel !== false;
-      const sel = $("cliModel"), custom = $("cliModelCustom");
-      sel.replaceChildren(new Option(info?.defaultModel ? `客户端默认 · ${info.defaultModel}` : "客户端默认模型", ""));
-      models.forEach(m => {
-        const option = new Option(`${m.name || m.id}${m.id === info.defaultModel ? " · 默认" : ""}`, m.id);
+      sel.replaceChildren(new Option(defaultModel ? `客户端默认模型 · ${defaultModel}` : "客户端默认模型", ""));
+      models.forEach(model => {
+        const id = typeof model === "string" ? model : model.id;
+        if (!id) return;
+        const name = typeof model === "string" ? model : model.name || id;
+        const option = new Option(`${name}${id === defaultModel ? " · 默认" : ""}`, id);
         option.disabled = !canSelect;
         sel.add(option);
       });
       const manual = new Option("手动输入模型 ID…", "__custom__");
-      manual.disabled = !canSelect; sel.add(manual);
-      const saved = canSelect ? savedModels[$("cliEngine").value] || "" : "";
-      sel.value = saved && !models.some(m => m.id === saved) ? "__custom__" : saved;
-      custom.value = sel.value === "__custom__" ? saved : "";
-      custom.classList.toggle("hidden", sel.value !== "__custom__");
+      manual.disabled = !canSelect;
+      sel.add(manual);
+      const saved = savedModels[eng] || "";
+      // Obsolete presets remain visible as manual IDs; never silently substitute a different model.
+      if (canSelect && saved && models.some(m => (typeof m === "string" ? m : m.id) === saved)) {
+        sel.value = saved; custom.classList.add("hidden"); custom.value = "";
+      } else if (canSelect && saved) {
+        sel.value = "__custom__"; custom.classList.remove("hidden"); custom.value = saved;
+      } else {
+        sel.value = ""; custom.classList.add("hidden"); custom.value = "";
+      }
       custom.disabled = !canSelect;
       const notes = [info?.modelError, info?.modelSelectionNote];
-      if (saved && sel.value === "__custom__") notes.push("上次选择不在当前目录中，请确认或改用默认模型。");
-      $("cliHint").textContent = info ? notes.filter(Boolean).join(" ") : "双击「启动写作台.command」，或运行 python3 server.py --open。";
-      updateCliButtons();
+      if (canSelect && saved && sel.value === "__custom__") notes.push("上次选择不在当前模型目录中，请确认或改用默认模型。");
+      $("cliHint").textContent = info ? notes.filter(Boolean).join(" ") : "请双击「启动写作台.command」。";
     }
+    function currentSelectedModel() {
+      const val = $("cliModel").value;
+      return val === "__custom__" ? $("cliModelCustom").value.trim() : val;
+    }
+    $("cliEngine").onchange = () => { refreshModelSelect(); updateCliButtons(); };
+    $("cliModel").onchange = () => {
+      const eng = $("cliEngine").value;
+      const isCustom = $("cliModel").value === "__custom__";
+      $("cliModelCustom").classList.toggle("hidden", !isCustom);
+      if (isCustom) $("cliModelCustom").focus();
+      else { savedModels[eng] = $("cliModel").value; localStorage.setItem("writer:cliModels", JSON.stringify(savedModels)); }
+    };
+    $("cliModelCustom").oninput = () => {
+      const eng = $("cliEngine").value;
+      savedModels[eng] = $("cliModelCustom").value.trim();
+      localStorage.setItem("writer:cliModels", JSON.stringify(savedModels));
+    };
+    let writing = false, generated = null, fileCode = "";
     async function detectCLI(force = false) {
-      $("cliCheck").disabled = true;
-      $("cliStatus").textContent = "检测中…";
       let engines = [];
+      $("cliStatus").textContent = "检测中…";
+      $("cliCheck").disabled = true;
       try {
-        if (!bridge) throw Error("请从本机服务打开页面");
-        const response = await fetch(bridge + "/api/engines" + (force ? "?refresh=1" : ""), {signal: AbortSignal.timeout(65000)});
-        const data = await response.json();
-        if (!response.ok || !Array.isArray(data.engines)) throw Error("检测失败");
+        const reply = await fetch(bridge + "/api/engines" + (force ? "?refresh=1" : ""), {signal: AbortSignal.timeout(65000)});
+        const data = await reply.json();
+        if (!reply.ok || !Array.isArray(data.engines)) throw Error();
         engines = data.engines;
       } catch {}
-      engineCatalog = Object.fromEntries(engines.map(e => [e.engine, e]));
-      $("cliStatus").textContent = engines.length ? "已连接" : "未启动";
-      const menu = $("cliEngine"), previous = menu.value;
-      menu.replaceChildren();
-      Object.entries(engineLabels).forEach(([key, label]) => {
-        const available = !!engineCatalog[key]?.available;
-        const option = new Option(label + (available ? " · 就绪" : " · 不可用"), key);
-        option.disabled = !available; menu.add(option);
-      });
-      menu.value = engineCatalog[previous]?.available ? previous : engines.find(e => e.available)?.engine || "";
+      engineCatalog = Object.fromEntries(engines.map(info => [info.engine, info]));
       $("cliCheck").disabled = false;
+      $("cliStatus").textContent = engines.length ? "已连接" : "未启动";
+      $("cliStatus").classList.toggle("online", engines.length > 0);
+      $("cliHint").textContent = engines.length ? "" : "请双击「启动写作台.command」。";
+      const menu = $("cliEngine");
+      const prevEng = menu.value;
+      menu.replaceChildren();
+      for (const [name, label] of Object.entries(engineLabels)) {
+        const available = engines.some(e => e.engine === name && e.available);
+        const option = new Option(label + (available ? " · 就绪" : " · 不可用"), name);
+        option.disabled = !available;
+        menu.add(option);
+      }
+      if (prevEng && [...menu.options].some(o => o.value === prevEng && !o.disabled)) menu.value = prevEng;
+      else menu.selectedIndex = [...menu.options].findIndex(o => !o.disabled);
       refreshModelSelect();
+      updateCliButtons();
     }
-    async function runCliWriting(kind) {
-      if (writing || !state.book) return;
-      const book = state.book, file = state.file;
-      if (kind === "polish" && !book.chapters.includes(file)) return toast("请先打开要润色的正文章节");
-      writing = true; generated = null; updateCliButtons();
-      $("cliOutput").value = "";
-      $("cliMessage").textContent = "正在生成…";
-      try {
-        const prompt = await buildPack(kind);
-        if (state.book !== book || state.file !== file) throw Error("生成准备期间切换了作品或文档，请重新生成");
-        const brief = $("cliBrief").value.trim();
-        const response = await fetch(bridge + "/api/generate", {
-          method: "POST", headers: {"Content-Type": "application/json"},
-          body: JSON.stringify({engine: $("cliEngine").value, model: selectedModel(),
-            prompt: prompt + (brief ? "\n\n## 本次要求\n" + brief : "") + "\n\n只返回 Markdown 内容，不调用工具、不直接修改文件。"}),
-          signal: AbortSignal.timeout(330000)
+    const DEFAULT_ITERATION_SKILL = "_写作方法论/_写作偏好迭代记录.md";
+    const INTENT_LABELS = {
+      auto: "✨ 智能",
+      continue: "① 往后续写",
+      new_chapter: "② 开新一章",
+      edit_current: "③ 改当前章",
+      iterate_skill: "④ 迭代Skill",
+    };
+    let bookBindings = {};
+    try { bookBindings = JSON.parse(localStorage.getItem("writer:bookBindings") || "{}") || {}; } catch {}
+    let selectedIntent = "auto";
+    let chatHistory = [], chatRoot = null, chatBook = "";
+    let undoSnapshots = {};
+    let lastAiBaseline = { filePath: "", text: "", source: "" };
+
+    function saveBookBindings() {
+      localStorage.setItem("writer:bookBindings", JSON.stringify(bookBindings));
+    }
+    function getBookBinding(bookName) {
+      if (!bookName) return { styleCard: "", skills: [] };
+      if (!bookBindings[bookName]) {
+        const defaultIter = state.assets.skills.find(s => s.path === DEFAULT_ITERATION_SKILL)?.path;
+        const defaults = [defaultIter].filter(Boolean);
+        bookBindings[bookName] = { styleCard: "", skills: defaults };
+      }
+      return bookBindings[bookName];
+    }
+    function renderAssetControls() {
+      const cardSel = $("cliStyleCard");
+      const skillBox = $("cliSkillList");
+      const hint = $("cliAssetHint");
+      if (!cardSel || !skillBox) return;
+      cardSel.replaceChildren(new Option("（不绑定风格卡）", ""));
+      state.assets.styleCards.forEach(c => cardSel.add(new Option(c.name, c.path)));
+      if (state.assets.missingFromServer) {
+        hint.textContent = "提示：请刷新或重启写手空间以加载 _style-cards 与 _写作方法论。";
+        hint.classList.remove("hidden");
+      } else if (!state.assets.styleCards.length && !state.assets.skills.length) {
+        hint.textContent = "当前书架根目录未检测到 _style-cards 或 _写作方法论 文件夹。";
+        hint.classList.remove("hidden");
+      } else {
+        hint.classList.add("hidden");
+      }
+      if (!state.assets.skills.length) {
+        skillBox.innerHTML = '<small>暂无可勾选的写作方法论 / Skill</small>';
+      } else {
+        skillBox.innerHTML = state.assets.skills.map(s => `
+          <label class="skill-chip" title="${escapeHtml(s.path)}">
+            <input type="checkbox" data-skill-path="${escapeHtml(s.path)}" />
+            <span>${escapeHtml(s.name)}</span>
+          </label>
+        `).join("");
+        skillBox.querySelectorAll("input[data-skill-path]").forEach(cb => {
+          cb.onchange = () => {
+            if (!state.currentBook) return;
+            const b = getBookBinding(state.currentBook.name);
+            b.skills = [...skillBox.querySelectorAll("input[data-skill-path]:checked")].map(x => x.dataset.skillPath);
+            saveBookBindings();
+            $("cliSkillCount").textContent = `${b.skills.length} 项`;
+            updateAssetStatusText();
+            toast(cb.checked ? "已启用 Skill：" + cb.nextElementSibling.textContent : "已取消 Skill：" + cb.nextElementSibling.textContent);
+          };
         });
-        const result = await response.json();
-        if (!response.ok || !result.ok) throw Error(result.error || "生成失败");
-        generated = {book, file, kind, text: result.text};
-        $("cliOutput").value = result.text;
-        $("cliMessage").textContent = `生成完成 · ${(result.durationMs / 1000).toFixed(1)} 秒；确认后再写回。`;
-      } catch (error) { $("cliMessage").textContent = error.message; }
-      finally { writing = false; updateCliButtons(); }
+      }
+      syncBookBindingUI();
     }
-    $("cliEngine").onchange = refreshModelSelect;
-    $("cliModel").onchange = () => {
-      const custom = $("cliModel").value === "__custom__";
-      $("cliModelCustom").classList.toggle("hidden", !custom);
-      if (custom) $("cliModelCustom").focus(); else { rememberModel(); refreshModelSelect(); }
+    function updateAssetStatusText() {
+      const el = $("cliAssetStatus");
+      if (!el) return;
+      const book = state.currentBook;
+      if (!book) { el.textContent = ""; return; }
+      const b = getBookBinding(book.name);
+      const cardName = state.assets.styleCards.find(c => c.path === b.styleCard)?.name;
+      const skillCount = (b.skills || []).filter(p => state.assets.skills.some(s => s.path === p)).length;
+      if (!cardName && !skillCount) {
+        el.textContent = "当前仅按本书档案创作（可在上方绑定风格卡/Skill）";
+      } else {
+        const parts = [];
+        if (cardName) parts.push(`风格卡「${cardName}」`);
+        if (skillCount) parts.push(`${skillCount} 份 Skill`);
+        el.textContent = `✅ 已挂载：${parts.join(" + ")}`;
+      }
+    }
+    function renderSkillTargetSelect() {
+      const sel = $("skillTarget");
+      if (!sel) return;
+      const prev = sel.value;
+      sel.replaceChildren();
+      sel.add(new Option("📝 写作偏好迭代记录（推荐 · 自动追加）", DEFAULT_ITERATION_SKILL));
+      const binding = state.currentBook ? getBookBinding(state.currentBook.name) : null;
+      if (binding?.styleCard) {
+        const card = state.assets.styleCards.find(c => c.path === binding.styleCard);
+        if (card) sel.add(new Option("🎨 当前绑定风格卡 · " + card.name, card.path));
+      }
+      state.assets.skills.forEach(s => {
+        if (s.path === DEFAULT_ITERATION_SKILL) return;
+        sel.add(new Option("📚 Skill · " + s.name, s.path));
+      });
+      state.assets.styleCards.forEach(c => {
+        if (c.path === binding?.styleCard) return;
+        sel.add(new Option("🎨 风格卡 · " + c.name, c.path));
+      });
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+    function syncBookBindingUI() {
+      const book = state.currentBook;
+      const cardSel = $("cliStyleCard");
+      const skillBox = $("cliSkillList");
+      if (!cardSel || !skillBox) return;
+      if (!book) {
+        cardSel.value = "";
+        $("cliSkillCount").textContent = "0 项";
+        updateAssetStatusText();
+        renderSkillTargetSelect();
+        return;
+      }
+      const b = getBookBinding(book.name);
+      cardSel.value = [...cardSel.options].some(o => o.value === b.styleCard) ? b.styleCard : "";
+      const set = new Set(b.skills || []);
+      let checked = 0;
+      skillBox.querySelectorAll("input[data-skill-path]").forEach(cb => {
+        cb.checked = set.has(cb.dataset.skillPath);
+        if (cb.checked) checked++;
+      });
+      $("cliSkillCount").textContent = `${checked} 项`;
+      updateAssetStatusText();
+      renderSkillTargetSelect();
+    }
+    $("cliStyleCard").onchange = () => {
+      if (!state.currentBook) return;
+      const b = getBookBinding(state.currentBook.name);
+      b.styleCard = $("cliStyleCard").value;
+      saveBookBindings();
+      updateAssetStatusText();
+      renderSkillTargetSelect();
+      toast(b.styleCard ? "已绑定风格卡：" + $("cliStyleCard").selectedOptions[0].textContent : "已取消本书风格卡绑定");
     };
-    $("cliModelCustom").oninput = rememberModel;
-    $("cliCheck").onclick = () => detectCLI(true);
-    document.querySelectorAll("[data-cli-kind]").forEach(b => b.onclick = () => runCliWriting(b.dataset.cliKind));
-    $("cliFill").onclick = () => {
-      if (!generated || !state.file) return;
-      if (state.book !== generated.book || state.file !== generated.file) return toast("请返回生成时的作品和文档，或选择另存");
-      if (!confirm("用预览结果替换当前编辑器内容？磁盘文件会在你点击保存后更新。")) return;
-      $("editorArea").value = generated.text;
-      $("editorArea").dispatchEvent(new Event("input"));
-      if (state.mode === "reader") $("readProse").innerHTML = renderMd(generated.text);
-      toast("已填入编辑器，尚未保存");
-    };
-    $("cliSaveNew").onclick = async () => {
-      if (!generated) return;
-      if (!window.showSaveFilePicker) return toast("请复制结果，或在 Chrome / Edge 中另存");
-      const text = generated.text;
+    async function readBoundAssetsSections(book) {
+      const b = getBookBinding(book?.name);
+      const sections = [];
+      if (b.styleCard) {
+        const card = state.assets.styleCards.find(c => c.path === b.styleCard);
+        if (card?.handle) {
+          try {
+            const txt = (await readHandleText(card.handle)).trim().slice(0, 28000);
+            if (txt) sections.push(`## 已绑定写作风格卡（${card.name}）\n请严格模仿以下风格卡的语感、节奏、叙事颗粒度与禁区：\n\n${txt}`);
+          } catch {}
+        }
+      }
+      for (const sp of (b.skills || [])) {
+        const sk = state.assets.skills.find(s => s.path === sp);
+        if (sk?.handle) {
+          try {
+            const txt = (await readHandleText(sk.handle)).trim().slice(0, 16000);
+            if (txt) sections.push(`## 已启用写作方法论 / Skill（${sk.name}）\n${txt}`);
+          } catch {}
+        }
+      }
+      return sections;
+    }
+    function stripCodeFence(text) {
+      const t = String(text || "").trim();
+      const m = t.match(/^```(?:markdown|md)?\r?\n([\s\S]*?)\r?\n```$/i);
+      return m ? m[1].trim() : t;
+    }
+    function setSelectedIntent(intent) {
+      selectedIntent = intent;
+      document.querySelectorAll("#cliIntentPills .intent-pill").forEach(b => b.classList.toggle("active", b.dataset.intent === intent));
+      $("cliSkillTargetWrap").classList.toggle("hidden", intent !== "iterate_skill");
+      const placeholders = {
+        auto: "直接说你想做什么（Enter 发送，Shift+Enter 换行）：\n· 继续往后写一段冲突\n· 开新的一章，写两人摊牌\n· 把第2段太AI的词去掉\n· 总结我刚才的修改，迭代进Skill",
+        continue: "可选：补充接下来想写的剧情或冲突，直接回车就会顺着当前章末尾继续往后写并自动保存…",
+        new_chapter: "可选：写下下一章的剧情想法或标题，直接回车就会自动新建下一章文件并写完打开…",
+        edit_current: "告诉我怎么改当前章，例如「把第2段太AI的词去掉」「对白更克制一点」，回车后直接改好并保存…",
+        iterate_skill: "可选：补充说明（或直接回车），我会自动复盘你刚才的手动修改与对话反馈，并追加写入选中的 Skill…",
+      };
+      $("cliChatInput").placeholder = placeholders[intent] || placeholders.auto;
+    }
+    document.querySelectorAll("#cliIntentPills .intent-pill").forEach(b => {
+      b.onclick = () => { setSelectedIntent(b.dataset.intent); $("cliChatInput").focus(); };
+    });
+    function detectIntent(text) {
+      if (selectedIntent !== "auto") return selectedIntent;
+      const s = (text || "").trim();
+      if (/(迭代|复盘|总结.*(改|修改|偏好|原因)|写进.*(skill|技能|风格卡|方法论)|更新.*(skill|风格卡)|去\s*ai\s*味.*(skill|规则)|记住.*(规则|不要用|以后别)|沉淀.*(skill|规则))/i.test(s)) return "iterate_skill";
+      if (/(开新的一章|开新一章|新开一章|新建一章|新建下一章|写下一章|下一章|新章)/i.test(s)) return "new_chapter";
+      const chMatch = s.match(/第\s*(\d+)\s*章/);
+      if (chMatch) {
+        const reqNum = Number(chMatch[1]);
+        const chapters = state.currentBook?.chapters || [];
+        const exists = chapters.some(c => chapterNumber(c.name) === reqNum);
+        if (!exists && !/(改|润色|精修|删|去掉|重写|调整|替换)/i.test(s)) return "new_chapter";
+      }
+      if (/(继续往后写|往后写|往后续写|接着写|往下写|续写|接下去写|继续写下去)/i.test(s)) return "continue";
+      if (/(当前基础|基础上|改|润色|精修|删|去掉|重写|调整|替换|太\s*ai|口吻|对话|节奏|第\s*\d+\s*段)/i.test(s)) return "edit_current";
+      const curWords = countWords($("editorArea").value || "");
+      return curWords < 80 ? "continue" : "edit_current";
+    }
+    function pickSkillTargetFromText(text) {
+      const s = (text || "").toLowerCase();
+      for (const sk of state.assets.skills) {
+        const clean = sk.name.replace(/^_+/, "").toLowerCase();
+        if (clean.length >= 2 && s.includes(clean)) return sk.path;
+      }
+      for (const c of state.assets.styleCards) {
+        if (c.name.length >= 2 && s.includes(c.name.toLowerCase())) return c.path;
+      }
+      return $("skillTarget")?.value || DEFAULT_ITERATION_SKILL;
+    }
+    function renderChatLog() {
+      const box = $("cliChatLog");
+      if (!box) return;
+      if (!chatHistory.length) {
+        box.innerHTML = '<div class="cli-bubble ai">告诉我你要做什么，生成后先预览，确认后写回：<br>① <b>继续往后写</b>（追加到当前章）<br>② <b>开新的一章</b>（自动新建章节文件并打开）<br>③ <b>在当前基础上修改</b>（确认后改当前章并支持撤销）<br>④ <b>迭代 Skill</b>（复盘修改，确认后追加 Skill）</div>';
+        return;
+      }
+      box.innerHTML = chatHistory.map(m => {
+        const tag = m.intent ? `<div class="cli-mode-tag">${escapeHtml(INTENT_LABELS[m.intent] || m.intent)}</div>` : "";
+        const undoBtn = m.undoId && undoSnapshots[m.undoId] && !undoSnapshots[m.undoId].used
+          ? `<div class="cli-bubble-actions"><button type="button" class="btn" data-undo-id="${escapeHtml(m.undoId)}">↩ 撤销这次写入</button></div>`
+          : "";
+        return `<div class="cli-bubble ${m.role === "user" ? "user" : "ai"}">${tag}<div>${escapeHtml(m.text)}</div>${undoBtn}</div>`;
+      }).join("");
+      box.querySelectorAll("[data-undo-id]").forEach(btn => {
+        btn.onclick = () => performUndo(btn.dataset.undoId);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+    async function performUndo(undoId) {
+      const snap = undoSnapshots[undoId];
+      if (!snap || snap.used) return;
       try {
-        const handle = await window.showSaveFilePicker({suggestedName: generated.kind === "outline" ? "下一章细纲.md" : "新章节.md",
-          types: [{description: "Markdown", accept: {"text/markdown": [".md"]}}]});
-        await writeText(handle, text);
-        toast("已另存 Markdown");
-      } catch (error) { if (error.name !== "AbortError") toast("另存失败：" + error.message); }
+        if (state.rootHandle !== snap.root || state.currentBook?.name !== snap.bookName) throw Error("请回到原书架与作品再撤销");
+        if (snap.type === "chapter") {
+          if (state.dirty) throw Error("请先保存当前手动修改再撤销");
+          await writeHandleText(snap.handle, snap.prevText, snap.nextText);
+          if (state.currentFile?.path === snap.filePath) {
+            $("editorArea").value = snap.prevText;
+            state.savedText = snap.prevText;
+            state.dirty = false;
+            $("dirtyDot").classList.remove("show");
+            $("btnSave").disabled = true;
+            renderCurrentDoc(snap.prevText);
+            lastAiBaseline = { filePath: snap.filePath, text: snap.prevText, source: "撤销恢复稿" };
+          }
+          await scanWorkspace(true, snap.filePath);
+        } else if (snap.type === "skill") {
+          if (state.rootHandle !== snap.root) throw Error("请回到原书架再撤销");
+          await writeWorkspaceRelPath(snap.targetPath, snap.prevText || "", snap.nextText);
+          await scanWorkspace(true);
+        }
+        snap.used = true;
+        renderChatLog();
+        toast("已撤销刚才的自动写入");
+      } catch (e) {
+        toast("撤销失败：" + e.message);
+      }
+    }
+    async function readWorkspaceRelPath(relPath) {
+      if (serviceMode) {
+        return (await localAPI("/api/file?" + new URLSearchParams({ workspace: state.rootHandle.ws.id, path: relPath }))).text;
+      }
+      const parts = relPath.split("/");
+      const fn = parts.pop();
+      let dir = state.rootHandle;
+      for (const seg of parts) dir = await dir.getDirectoryHandle(seg);
+      return await readHandleText(await dir.getFileHandle(fn));
+    }
+    async function writeWorkspaceRelPath(relPath, text, expectedText) {
+      if (serviceMode) {
+        await localAPI("/api/file", { workspace: state.rootHandle.ws.id, path: relPath, text, ...(expectedText !== undefined ? {expectedText} : {}) });
+        return;
+      }
+      const parts = relPath.split("/");
+      const fn = parts.pop();
+      let dir = state.rootHandle;
+      for (const seg of parts) dir = await dir.getDirectoryHandle(seg, { create: true });
+      await writeHandleText(await dir.getFileHandle(fn, { create: true }), text, expectedText === null ? undefined : expectedText);
+    }
+    let activeAbort = null;
+    function updateCliButtons() {
+      const noEng = !$("cliEngine").value;
+      $("cliSendBtn").disabled = writing || noEng;
+      $("cliStopBtn").classList.toggle("hidden", !writing);
+    }
+    $("cliStopBtn").onclick = () => {
+      if (activeAbort) { activeAbort.abort(); activeAbort = null; toast("已停止接收与写回；客户端可能仍在生成"); }
     };
+    function reviewGenerated(text, label) {
+      const dialog = $("generatedReview");
+      $("reviewTitle").textContent = label + " · 生成预览";
+      $("reviewText").value = text;
+      chatHistory.push({role:"ai", text:"生成预览（尚未写回）：\n" + text});
+      renderChatLog();
+      return new Promise((resolve, reject) => {
+        dialog.returnValue = "cancel";
+        $("reviewCancel").onclick = () => dialog.close("cancel");
+        $("reviewApply").onclick = () => dialog.close("apply");
+        dialog.onclose = () => dialog.returnValue === "apply" ? resolve() : reject(Error("已取消写回，结果保留在对话中"));
+        dialog.showModal();
+      });
+    }
+    async function callLocalGenerate(promptText) {
+      if (location.protocol === "file:") throw Error("台内生成请先运行 server.py 并打开本机工作台");
+      const model = currentSelectedModel();
+      activeAbort = new AbortController();
+      const reply = await fetch(bridge + "/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ engine: $("cliEngine").value, model, prompt: promptText, fileCode }),
+        signal: activeAbort.signal
+      });
+      const data = await reply.json();
+      if (!data.ok) {
+        if (reply.status === 403) fileCode = "";
+        throw Error(data.error);
+      }
+      return data;
+    }
+    const chapterNumber = name => Number((name.match(/第\s*(\d+)\s*章/) || name.match(/^(\d+)(?=[_\-\s.])/))?.[1] || 0);
+    function formatNextChapterFilename(book, number, title) {
+      const cleanTitle = (title || "新章").replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 50) || "新章";
+      const candidates = (book?.chapters || [])
+        .filter(c => !c.path.startsWith("番外/") && !/全本|设计包/.test(c.name) && chapterNumber(c.name) > 0)
+        .sort((a, b) => chapterNumber(b.name) - chapterNumber(a.name));
+      const sample = candidates[0];
+      if (sample) {
+        const stem = sample.path.split("/").pop().replace(/\.md$/i, "");
+        const m1 = stem.match(/^(.*?第\s*)(\d+)(\s*章)(.*)$/);
+        if (m1) {
+          const [, prefix, numStr, unit, rest] = m1;
+          const padded = numStr.startsWith("0") ? String(number).padStart(Math.max(numStr.length, String(number).length), "0") : String(number);
+          if (!rest) return `${prefix}${padded}${unit}.md`;
+          const sep = rest[0];
+          if (/[-_ ·]/.test(sep)) {
+            const afterSep = rest.slice(1);
+            const idx = afterSep.indexOf(sep);
+            const suffix = idx !== -1 ? afterSep.slice(idx) : "";
+            return `${prefix}${padded}${unit}${sep}${cleanTitle}${suffix}.md`;
+          }
+          return `${prefix}${padded}${unit}-${cleanTitle}.md`;
+        }
+        const m2 = stem.match(/^(\d+)([-_ ])(.*)$/);
+        if (m2) {
+          const [, numStr, sep, afterSep] = m2;
+          const padded = numStr.startsWith("0") ? String(number).padStart(Math.max(numStr.length, String(number).length), "0") : String(number);
+          const idx = afterSep.indexOf(sep);
+          const suffix = idx !== -1 ? afterSep.slice(idx) : "";
+          return `${padded}${sep}${cleanTitle}${suffix}.md`;
+        }
+      }
+      return `第${String(number).padStart(3, "0")}章-${cleanTitle}.md`;
+    }
+    const archiveName = /进度|设定|总纲|圣经|世界观|人物|大纲|伏笔|时间线/;
+    async function collectBookMaterials(book) {
+      const archives = [...book.coreFiles, ...book.chapters.filter(f => !f.path.includes("/") && archiveName.test(f.name))];
+      const chapters = book.chapters.filter(f => !archives.includes(f) && !f.path.startsWith("番外/"));
+      chapters.sort((a,b) => chapterNumber(a.name) - chapterNumber(b.name) || a.name.localeCompare(b.name, "zh", {numeric:true}));
+      const read = f => f === state.currentFile ? $("editorArea").value : readHandleText(f.handle);
+      let tail = "暂无前章";
+      for (let i = chapters.length - 1; i >= 0; i--) {
+        const bodyTxt = parseFrontmatter(await read(chapters[i])).body.replace(/^#.*$/gm, "").trim();
+        if (bodyTxt.length > 30) { tail = bodyTxt.slice(-1500); break; }
+      }
+      const materials = await Promise.all(archives.map(async f => "## " + f.name + "\n" + await read(f)));
+      return { materials, tail };
+    }
+    async function applyToCurrentEditorAndSave(fileItem, nextText, baselineLabel, expectedText) {
+      await writeHandleText(fileItem.handle, nextText, expectedText);
+      if (state.currentFile?.path === fileItem.path) {
+        $("editorArea").value = nextText;
+        state.savedText = nextText;
+        state.dirty = false;
+        $("dirtyDot").classList.remove("show");
+        $("btnSave").disabled = true;
+        $("statusSaved").textContent = "已自动保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        lastAiBaseline = { filePath: fileItem.path, text: nextText, source: baselineLabel };
+        state.studioEditing = true;
+        renderCurrentDoc(nextText);
+        if (state.wsMode === "studio") applyWsMode("studio");
+        else if (state.wsMode === "split") renderSplitRefPane();
+      }
+      await scanWorkspace(true, fileItem.path);
+    }
+    async function runDialogAction() {
+      if (writing) return;
+      const book = state.currentBook;
+      if (!book || book.isLooseBucket) return toast("请先选择一部作品");
+      const rawInput = $("cliChatInput").value.trim();
+      const intent = detectIntent(rawInput);
+      if (!rawInput && intent === "edit_current") return toast("请告诉我你想怎么修改当前章");
+      const userDisplay = rawInput || `执行「${INTENT_LABELS[intent]}」`;
+      $("cliChatInput").value = "";
+      chatHistory.push({ role: "user", intent, text: userDisplay });
+      renderChatLog();
+
+      writing = true;
+      const requestBook = book, requestRoot = state.rootHandle, requestFile = state.currentFile;
+      const requestEditor = $("editorArea").value;
+      function guardContext() {
+        if (state.rootHandle !== requestRoot || state.currentBook !== requestBook || state.currentFile !== requestFile || $("editorArea").value !== requestEditor)
+          throw Error("生成期间作品或正文已变化；已保留结果预览，请重新发起写回");
+      }
+      updateCliButtons();
+      const model = currentSelectedModel();
+      $("cliMessage").textContent = `${INTENT_LABELS[intent]} · 正在调用 ${model || $("cliEngine").value}…`;
+      try {
+        const assetSections = await readBoundAssetsSections(book);
+        if (intent === "continue") {
+          const file = state.currentFile;
+          if (!file) throw Error("请先在左侧打开要续写的章节，或直接说「开新的一章」");
+          const prevText = $("editorArea").value;
+          const diskBefore = await readHandleText(file.handle);
+          const { materials } = await collectBookMaterials(book);
+          const promptText = [
+            `你是小说编辑，正在为《${book.name}》当前章节「${file.name}」继续往后写。`,
+            "请严格承接下面当前章的结尾直接往下续写新段落：不要重复已有文字，不要重新输出章节标题或 YAML 元数据，不要包代码围栏，只输出新增的正文 Markdown。",
+            ...assetSections,
+            rawInput ? `作者本轮续写要求：${rawInput}` : "按剧情自然推进 1000~1800 字。",
+            ...materials,
+            `当前章节已有内容（结尾部分）：\n${prevText.slice(-3000)}`
+          ].filter(Boolean).join("\n\n");
+          const data = await callLocalGenerate(promptText);
+          await reviewGenerated(data.text, INTENT_LABELS[intent]);
+          guardContext();
+          const added = stripCodeFence(data.text);
+          const nextText = prevText.trimEnd() ? `${prevText.trimEnd()}\n\n${added}\n` : `${added}\n`;
+          const undoId = "u-" + Date.now();
+          undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText: diskBefore, nextText, used: false };
+          await applyToCurrentEditorAndSave(file, nextText, "AI 续写后", diskBefore);
+          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已继续往后写并自动保存到《${file.name}》（新增约 ${countWords(added)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。` });
+        } else if (intent === "new_chapter") {
+          const { materials, tail } = await collectBookMaterials(book);
+          const maxNum = book.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
+          const nextNum = Math.max(maxNum, book.chapters.length) + 1;
+          const promptText = [
+            `你是小说编辑，正在为《${book.name}》创作新的一章（第${nextNum}章）。`,
+            `请直接输出完整的纯 Markdown 正文，第一行必须是章节标题（格式：# 第${nextNum}章 简短章名），不要解释说明，不要包代码围栏。`,
+            ...assetSections,
+            rawInput ? `作者对这一章的要求：${rawInput}` : "承接上一章自然展开新章情节，2000~3000 字。",
+            ...materials,
+            `上一章结尾：\n${tail}`
+          ].filter(Boolean).join("\n\n");
+          const data = await callLocalGenerate(promptText);
+          await reviewGenerated(data.text, INTENT_LABELS[intent]);
+          guardContext();
+          let bodyOut = stripCodeFence(data.text);
+          const title = (bodyOut.match(/^#\s+(.+)$/m)?.[1] || "草稿").replace(/^第\S+?章\s*/, "").replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 50) || "新章";
+          const targetSub = book.chapterDirName || "04-正文";
+          let savedName = "";
+          await navigator.locks.request("loki-next-" + book.name, async () => {
+            const dir = await book.dirHandle.getDirectoryHandle(targetSub, { create: true });
+            let n = maxNum, count = 0;
+            for await (const [name, entry] of dir.entries()) {
+              if (entry.kind === "file" && /\.md$/i.test(name) && !/^readme\.md$/i.test(name)) {
+                count++; n = Math.max(n, chapterNumber(name));
+              }
+            }
+            const finalNum = Math.max(n, count) + 1;
+            savedName = formatNextChapterFilename(book, finalNum, title);
+            if (!bodyOut.startsWith("---")) {
+              const today = new Date().toISOString().slice(0, 10);
+              bodyOut = `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${finalNum}\ntitle: "${title}"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n${bodyOut}\n`;
+            }
+            await writeHandleText(await dir.getFileHandle(savedName, { create: true }), bodyOut);
+          });
+          state.studioEditing = true;
+          await scanWorkspace(true, `${targetSub}/${savedName}`);
+          lastAiBaseline = { filePath: `${targetSub}/${savedName}`, text: bodyOut, source: "AI 新章初稿" };
+          applyWsMode("studio");
+          chatHistory.push({ role: "ai", intent, text: `✅ 已自动新建并打开《${savedName}》（约 ${countWords(bodyOut)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。你可以直接手动修改，或在下方继续对话微调。` });
+        } else if (intent === "edit_current") {
+          const file = state.currentFile;
+          const prevText = $("editorArea").value;
+          if (!file || !prevText.trim()) throw Error("请先打开有内容的章节再修改");
+          const diskBefore = await readHandleText(file.handle);
+          const priorUserMsgs = chatHistory.filter(m => m.role === "user" && m.intent === "edit_current").slice(-6, -1).map((m, i) => `${i + 1}. ${m.text}`).join("\n");
+          const promptText = [
+            `你是小说编辑，正在按作者要求修改《${book.name}》当前文档「${file.name}」。`,
+            "请严格按作者的最新要求修改下面的文本，保留未要求改动的情节、人物口吻、Markdown 标题与 YAML 元数据。只输出修改后的完整 Markdown 文本，不要解释，不要包代码围栏。",
+            ...assetSections,
+            priorUserMsgs ? `此前已确认过的修改要求（不要回退）：\n${priorUserMsgs}` : "",
+            `当前全文：\n${prevText}`,
+            `作者最新要求：${rawInput}`
+          ].filter(Boolean).join("\n\n");
+          const data = await callLocalGenerate(promptText);
+          await reviewGenerated(data.text, INTENT_LABELS[intent]);
+          guardContext();
+          const nextText = stripCodeFence(data.text);
+          const undoId = "u-" + Date.now();
+          undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText: diskBefore, nextText, used: false };
+          await applyToCurrentEditorAndSave(file, nextText, "AI 修改后", diskBefore);
+          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已在当前章基础上完成修改并自动保存（约 ${countWords(nextText)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。不满意可点下方一键撤销。` });
+        } else if (intent === "iterate_skill") {
+          const afterText = $("editorArea").value.trim();
+          const beforeText = (lastAiBaseline.filePath === state.currentFile?.path ? lastAiBaseline.text : state.savedText || "").trim();
+          const hasDiff = beforeText && afterText && beforeText !== afterText;
+          const priorFeedbacks = chatHistory.filter(m => m.role === "user" && m.intent !== "iterate_skill").slice(-6).map(m => "- " + m.text).join("\n");
+          if (!hasDiff && !priorFeedbacks && !rawInput) {
+            throw Error("请先手动修改正文，或在对话框里告诉我你想沉淀什么规则");
+          }
+          const targetPath = pickSkillTargetFromText(rawInput);
+          const b = getBookBinding(book.name);
+          const cardName = state.assets.styleCards.find(c => c.path === b.styleCard)?.name || "未绑定";
+          const skillNames = (b.skills || []).map(p => state.assets.skills.find(s => s.path === p)?.name || p).join("、") || "无";
+          const promptText = [
+            `你是资深文学编辑兼写作 Skill 迭代教练。请结合作者在《${book.name}》中的修改与反馈，提炼可长期复用的写作规则。`,
+            `当前风格卡：${cardName}；已启用 Skill：${skillNames}；目标写回文件：${targetPath}。`,
+            rawInput ? `作者本次明确指令：${rawInput}` : "",
+            priorFeedbacks ? `本轮对话中作者提过的修改意见：\n${priorFeedbacks}` : "",
+            hasDiff ? `【修改前（${lastAiBaseline.source || "原稿"}）】\n${beforeText.slice(0, 9000)}` : "",
+            hasDiff ? `【作者修改后】\n${afterText.slice(0, 9000)}` : "",
+            "请直接输出干净的 Markdown（不要寒暄、不要代码围栏），包含两小节：\n#### 1. 修改原因复盘\n用 2~4 条要点总结作者为什么这样改（删掉了什么 AI 腔/问题，强化了什么质感）。\n\n#### 2. 沉淀的写作规则\n用 3~5 条可直接指导下次生成的明确规则（尽量附简短「避免 → 改为」示例）。"
+          ].filter(Boolean).join("\n\n");
+          const data = await callLocalGenerate(promptText);
+          await reviewGenerated(data.text, INTENT_LABELS[intent]);
+          guardContext();
+          const distilled = stripCodeFence(data.text);
+          let prevSkillText = null;
+          try { prevSkillText = await readWorkspaceRelPath(targetPath); } catch (error) {
+            if (!/No such file|NotFound|not found/i.test(error.message) && error.name !== "NotFoundError") throw error;
+          }
+          const today = new Date().toISOString().slice(0, 10);
+          const block = `### ${today} · 复盘沉淀（《${book.name}》）\n\n${distilled}\n`;
+          const defaultHeader = "# 写作偏好与去 AI 味迭代记录\n\n> 由「Loki 的写手空间」对话自动沉淀，勾选后每次创作自动生效。";
+          const nextSkillText = prevSkillText ? `${prevSkillText}\n\n${block}` : (targetPath === DEFAULT_ITERATION_SKILL ? `${defaultHeader}\n\n${block}` : block);
+          await writeWorkspaceRelPath(targetPath, nextSkillText, prevSkillText);
+          if (targetPath.startsWith("_写作方法论/")) {
+            if (!b.skills.includes(targetPath)) { b.skills.push(targetPath); saveBookBindings(); }
+          }
+          if (state.currentFile) {
+            lastAiBaseline = { filePath: state.currentFile.path, text: $("editorArea").value, source: "已复盘节点" };
+          }
+          const undoId = "u-" + Date.now();
+          undoSnapshots[undoId] = { type: "skill", root: state.rootHandle, bookName: book.name, targetPath, prevText: prevSkillText, nextText: nextSkillText, used: false };
+          await scanWorkspace(true);
+          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已自动追加写入 ${targetPath}（${Math.round(data.durationMs / 1000)} 秒），下次生成立即生效：\n\n${distilled}` });
+        }
+        renderChatLog();
+        $("cliMessage").textContent = "已完成";
+        toast("已完成：" + INTENT_LABELS[intent]);
+      } catch (e) {
+        const message = e.name === "AbortError" ? "已停止接收与写回；客户端可能仍在生成" : e.message;
+        chatHistory.push({ role: "ai", intent, text: (e.name === "AbortError" ? "⏹ " : "❌ ") + message });
+        renderChatLog();
+        $("cliMessage").textContent = message;
+      } finally {
+        writing = false;
+        updateCliButtons();
+      }
+    }
+    $("cliCheck").onclick = () => detectCLI(true);
+    $("cliSendBtn").onclick = runDialogAction;
+    $("cliChatInput").addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runDialogAction(); }
+    });
+    $("cliClearChat").onclick = () => { chatHistory = []; renderChatLog(); toast("已清空对话记录"); };
+    renderChatLog();
     detectCLI();
 
-    applyTheme(prefs.theme || "parchment");
-    applyMode(state.mode);
+    async function copyContextPack() {
+      const book = state.currentBook;
+      if (!book) return;
+      const readFirst = async (paths) => {
+        for (const p of paths) {
+          const f = book.coreFiles.find((x) => x.path === p || x.name.includes(p));
+          if (f) return (await readHandleText(f.handle)).trim();
+        }
+        return "";
+      };
+      const [progress, bible, characters, ledger, assetSections] = await Promise.all([
+        readFirst(["03-当前进度.md", "进度.md"]),
+        readFirst(["00-总纲与世界观.md", "00_设定集.md", "00_圣经.md", "00_设定与大纲.md", "世界观总纲"]),
+        readFirst(["01-人物状态卡.md", "01_大纲.md", "人物小传"]),
+        readFirst(["02-伏笔与时间线.md", "02_卷二卷三细纲.md"]),
+        readBoundAssetsSections(book),
+      ]);
+      let tail = "（暂无前章正文）";
+      if (book.chapters.length > 0) {
+        const latest = book.chapters[book.chapters.length - 1];
+        const { body } = parseFrontmatter(await readHandleText(latest.handle));
+        tail = `### 上一章结尾（${latest.name}）\n\n${body.trim().slice(-1200)}`;
+      }
+      const pack = [
+        `# 《${book.name}》写前上下文包`,
+        `请严格遵守文风与人物 OOC 红线。先和我确认本章 3~4 个场景细纲，再开始写正文；定稿后同步输出本章的人物状态变化、伏笔更新、时间线事件与进度锚点。`,
+        ...assetSections,
+        `## 1. 当前进度\n${progress}`, `## 2. 总纲与世界观\n${bible}`,
+        `## 3. 人物状态卡 / 大纲\n${characters}`, `## 4. 伏笔与时间线\n${ledger}`, `## 5. 上一章衔接\n${tail}`,
+      ].join("\n\n");
+      await navigator.clipboard.writeText(pack);
+      toast(`已复制《${book.name}》上下文包（${pack.length} 字）`);
+    }
+
+    /* IndexedDB 持久化最近打开的文件夹句柄 */
+    const DIR_DB_NAME = "loki-writer-space-dirs";
+    const DIR_STORE = "recentDirs";
+
+    function openDirDB() {
+      return new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        const req = indexedDB.open(DIR_DB_NAME, 1);
+        req.onupgradeneeded = () => {
+          const db = req.result;
+          if (!db.objectStoreNames.contains(DIR_STORE)) db.createObjectStore(DIR_STORE, { keyPath: "id" });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    async function loadRecentDirs() {
+      try {
+        const db = await openDirDB();
+        if (!db) return [];
+        const list = await new Promise((resolve) => {
+          const tx = db.transaction(DIR_STORE, "readonly");
+          const req = tx.objectStore(DIR_STORE).getAll();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+        list.sort((a, b) => (b.lastOpened || 0) - (a.lastOpened || 0));
+        state.recentDirs = list.slice(0, 8);
+        renderRecentDirs();
+        return state.recentDirs;
+      } catch { return []; }
+    }
+
+    async function rememberDirectory(dirHandle) {
+      try {
+        const db = await openDirDB();
+        if (!db) return;
+        const existing = await loadRecentDirs();
+        let matchedId = null;
+        for (const item of existing) {
+          try {
+            if (item.handle && await item.handle.isSameEntry(dirHandle)) { matchedId = item.id; break; }
+          } catch {
+            if (item.name === dirHandle.name) { matchedId = item.id; break; }
+          }
+        }
+        const record = { id: matchedId || `${dirHandle.name}-${Date.now()}`, name: dirHandle.name, handle: dirHandle, lastOpened: Date.now() };
+        await new Promise((resolve) => {
+          const tx = db.transaction(DIR_STORE, "readwrite");
+          tx.objectStore(DIR_STORE).put(record);
+          tx.oncomplete = resolve; tx.onerror = resolve;
+        });
+        await loadRecentDirs();
+      } catch {}
+    }
+
+    async function forgetDirectory(id) {
+      if (serviceMode) return updateLocalDirectories("remove",id);
+      try {
+        const db = await openDirDB();
+        if (!db) return;
+        await new Promise((resolve) => {
+          const tx = db.transaction(DIR_STORE, "readwrite");
+          tx.objectStore(DIR_STORE).delete(id);
+          tx.oncomplete = resolve; tx.onerror = resolve;
+        });
+        await loadRecentDirs();
+        toast("已从快捷列表移除");
+      } catch {}
+    }
+
+    async function openSavedDirectory(entry, silentAuto = false) {
+      if (serviceMode) return enterLocal(entry).catch(e => toast(e.message));
+      if (!entry?.handle) return false;
+      try {
+        let perm = await entry.handle.queryPermission({ mode: "readwrite" });
+        if (perm !== "granted") {
+          if (silentAuto) return false;
+          perm = await entry.handle.requestPermission({ mode: "readwrite" });
+        }
+        if (perm !== "granted") {
+          if (!silentAuto) toast("未获得该文件夹读写权限");
+          return false;
+        }
+        state.rootHandle = entry.handle;
+        await rememberDirectory(entry.handle);
+        await scanWorkspace(false);
+        toast(silentAuto ? `已自动恢复上次目录：${entry.name}` : `已切换目录：${entry.name}`);
+        return true;
+      } catch (e) {
+        if (!silentAuto) toast("无法打开该文件夹（可能已移动或删除），请重新选择");
+        return false;
+      }
+    }
+
+    function renderRecentDirs() {
+      const list = state.recentDirs || [];
+      const emptyBox = $("emptyRecentDirs");
+      const sideSection = $("recentDirsSection");
+      const sideList = $("recentDirsNav");
+
+      if (list.length === 0) {
+        emptyBox.classList.add("hidden");
+        sideSection.classList.add("hidden");
+        return;
+      }
+
+      emptyBox.classList.remove("hidden");
+      emptyBox.innerHTML = `<div class="recent-dirs-title">📁 最近打开的文件夹（点击直接进入）</div><div class="recent-dir-chip-list">` +
+        list.map((d) => `
+          <div class="recent-dir-card" data-open-id="${escapeHtml(d.id)}">
+            <span style="font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📂 ${escapeHtml(d.name)}</span>
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+              <span style="font-size:11.5px;color:var(--accent-copper);font-weight:600;">一键进入 →</span>
+              <button class="recent-dir-del" data-del-id="${escapeHtml(d.id)}" title="移除记录">×</button>
+            </div>
+          </div>`).join("") + `</div>`;
+
+      emptyBox.querySelectorAll("[data-open-id]").forEach((card) => {
+        card.onclick = (e) => {
+          if (e.target.closest("[data-del-id]")) return;
+          const item = list.find((x) => x.id === card.dataset.openId);
+          if (item) openSavedDirectory(item, false);
+        };
+      });
+      emptyBox.querySelectorAll("[data-del-id]").forEach((btn) => {
+        btn.onclick = (e) => { e.stopPropagation(); forgetDirectory(btn.dataset.delId); };
+      });
+
+      sideSection.classList.remove("hidden");
+      sideList.innerHTML = "";
+      list.forEach((d) => {
+        const isActive = serviceMode ? state.rootHandle?.ws?.id === d.id : state.rootHandle && state.rootHandle.name === d.name;
+        const row = document.createElement("div");
+        row.className = "recent-dir-row";
+        row.innerHTML = `
+          <button class="nav-btn loki-nav-item ${isActive ? "loki-nav-item-active" : ""}" title="点击切换到 ${escapeHtml(d.name)}">
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📁 ${escapeHtml(d.name)}</span>
+            <span class="nav-meta">${isActive ? "当前" : "打开"}</span>
+          </button>
+          <button class="recent-dir-del" title="从列表移除">×</button>`;
+        row.querySelector(".nav-btn").onclick = () => { if (!isActive) openSavedDirectory(d, false); };
+        row.querySelector(".recent-dir-del").onclick = () => forgetDirectory(d.id);
+        sideList.appendChild(row);
+      });
+    }
+
+    async function openDirectory() {
+      if (serviceMode) {
+        const path = prompt("输入要登记的本地目录绝对路径");
+        if (path?.trim()) await updateLocalDirectories("add",path.trim());
+        return;
+      }
+      if (!window.showDirectoryPicker) return alert("请用 Chrome、Edge 或 Arc 浏览器打开本页面，即可直接读写本地和 Obsidian 文件夹。");
+      try {
+        state.rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+        await rememberDirectory(state.rootHandle);
+        await scanWorkspace(false);
+        toast("已连接并记住目录：" + state.rootHandle.name);
+      } catch (e) { if (e.name !== "AbortError") toast("打开失败：" + e.message); }
+    }
+
+    async function createNewBook() {
+      const title = $("inputBookTitle").value.trim().replace(/[\\/:*?"<>|]/g, "");
+      const genre = $("inputBookGenre").value.trim() || "待定";
+      if (!title) return toast("请输入书名");
+      const bookDir = await state.rootHandle.getDirectoryHandle(title, { create: true });
+      await bookDir.getDirectoryHandle("04-正文", { create: true });
+      const files = {
+        "00-总纲与世界观.md": `---\ntype: novel-bible\nbook: "${title}"\ngenre: "${genre}"\nstatus: 筹备中\ntarget_words_per_chapter: 3000\ntags:\n  - 小说工作台\n  - 总纲\n---\n\n# 总纲与世界观\n\n## 基本信息\n- **书名**：${title}\n- **题材与基调**：${genre}\n- **核心卖点 / 一句话梗概**：\n- **叙事视角**：第三人称有限视角\n- **单章目标字数**：2500 ~ 3500 字\n\n## 文风与避雷\n- **想要的文字质感**：\n- **明确不要的 AI 腔 / 雷区**：\n\n## 世界观与底层规则\n- **时代与主要舞台**：\n- **核心规则**：\n\n## 分卷大纲\n### 第一卷：\n- **卷核心目标**：\n\n## 相关档案\n- [[01-人物状态卡]]\n- [[02-伏笔与时间线]]\n- [[03-当前进度]]\n`,
+        "01-人物状态卡.md": `---\ntype: novel-characters\nbook: "${title}"\nupdated_chapter: 0\ntags:\n  - 小说工作台\n  - 人物卡\n---\n\n# 人物状态卡\n\n## 主角：\n- **核心性格底色**：\n- **OOC 红线**：\n- **当前动态**（更新至第 0 章）：\n  - 所在位置：\n  - 当前目标：\n`,
+        "02-伏笔与时间线.md": `---\ntype: novel-ledger\nbook: "${title}"\ntags:\n  - 小说工作台\n  - 伏笔与时间线\n---\n\n# 伏笔与时间线\n\n## 伏笔账本\n\n| 编号 | 伏笔内容 | 埋设章节 | 计划回收窗口 | 状态 | 回收说明 |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| F01 | （示例）抽屉里的铜钥匙 | 第 1 章 | 第 5~8 章 | 待回收 | |\n\n## 故事时间线\n\n| 故事时间 | 对应章节 | 地点 | 关键事件 | 影响的人物 |\n| :--- | :--- | :--- | :--- | :--- | |\n`,
+        "03-当前进度.md": `---\ntype: novel-progress\nbook: "${title}"\nlatest_chapter: 0\nnext_chapter: 1\ntags:\n  - 小说工作台\n  - 进度\n---\n\n# 当前进度\n\n- **最新已完成章节**：暂无（待开篇）\n- **下一章编号**：第 1 章\n\n## 上一章结尾锚点\n- 时间与地点：\n- 悬念：\n\n## 下一章写作备忘\n- **本章必须推进的剧情**：\n`,
+      };
+      for (const [k, v] of Object.entries(files)) await writeHandleText(await bookDir.getFileHandle(k, { create: true }), v);
+      $("modalBook").classList.remove("open");
+      $("inputBookTitle").value = ""; $("inputBookGenre").value = "";
+      await scanWorkspace(false); await selectBook(title, "00-总纲与世界观.md");
+      toast(`已创建作品《${title}》`);
+    }
+
+    function openNewChapterModal() {
+      if (!state.currentBook || state.currentBook.isLooseBucket) return toast("请先选择一部作品");
+      const maxNum = state.currentBook.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
+      $("inputChapterNum").value = Math.max(maxNum, state.currentBook.chapters.length) + 1;
+      $("modalChapter").classList.add("open");
+      $("inputChapterTitle").focus();
+    }
+    async function createNewChapter() {
+      const book = state.currentBook;
+      if (!book) return;
+      const maxNum = book.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
+      const num = Number($("inputChapterNum").value) || (Math.max(maxNum, book.chapters.length) + 1);
+      const title = ($("inputChapterTitle").value.trim() || "未命名").replace(/[\\/:*?"<>|]/g, "");
+      const fname = formatNextChapterFilename(book, num, title);
+      const targetSub = book.chapterDirName || "04-正文";
+      const chDir = await book.dirHandle.getDirectoryHandle(targetSub, { create: true });
+      const fh = await chDir.getFileHandle(fname, { create: true });
+      const today = new Date().toISOString().slice(0, 10);
+      await writeHandleText(fh, `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${num}\ntitle: "${title}"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n# 第${num}章 ${title}\n\n`);
+      $("modalChapter").classList.remove("open"); $("inputChapterTitle").value = "";
+      state.studioEditing = true;
+      await scanWorkspace(true, `${targetSub}/${fname}`);
+      applyWsMode("studio");
+      toast(`已新建 ${fname}，可直接开写或用右侧 AI 生成细纲/正文`);
+    }
+
+    function centerTypewriter() {
+      if (state.wsMode !== "typewriter") return;
+      const ta = $("editorArea");
+      const lineIdx = ta.value.slice(0, ta.selectionStart).split("\n").length;
+      ta.scrollTo({ top: Math.max(0, lineIdx * (state.fontSize * state.lineHeight) - ta.clientHeight * 0.42), behavior: "smooth" });
+    }
+
+    /* Bindings */
+    $("btnOpenDir").onclick = openDirectory;
+    $("btnOpenDirBig").onclick = openDirectory;
+    $("btnAddDirSide").onclick = openDirectory;
+    $("btnRefresh").onclick = () => scanWorkspace(true).then(() => toast("已刷新目录"));
+    $("bookSelect").onchange = (e) => selectBook(e.target.value);
+    $("btnSave").onclick = saveCurrentFile; $("btnZenSave").onclick = saveCurrentFile;
+    $("btnCopyPack").onclick = copyContextPack; $("btnCopyPackSide").onclick = copyContextPack;
+    $("btnToggleEdit").onclick = () => { if (state.wsMode !== "studio") applyWsMode("studio"); state.studioEditing = !state.studioEditing; applyWsMode("studio"); };
+
+    document.querySelectorAll("#modeBar button").forEach((b) => { b.onclick = () => applyWsMode(b.dataset.wsMode); });
+    $("btnExitZen").onclick = () => applyWsMode("studio");
+
+    const openDrawer = () => $("drawerBackdrop").classList.add("open");
+    const closeDrawer = () => $("drawerBackdrop").classList.remove("open");
+    $("btnSkinDrawer").onclick = openDrawer; $("btnOpenSkinsBig").onclick = openDrawer; $("btnZenSkin").onclick = openDrawer;
+    $("btnCloseDrawer").onclick = closeDrawer;
+    $("drawerBackdrop").onclick = (e) => { if (e.target === $("drawerBackdrop")) closeDrawer(); };
+
+    document.querySelectorAll("#filterTabs button").forEach((b) => {
+      b.onclick = () => {
+        state.skinFilter = b.dataset.filter;
+        document.querySelectorAll("#filterTabs button").forEach((x) => x.classList.toggle("active", x === b));
+        renderThemes();
+      };
+    });
+    $("skinSearch").oninput = (e) => { state.skinQuery = e.target.value; renderThemes(); };
+
+    $("rngSize").oninput = (e) => { state.fontSize = Number(e.target.value); applyTypography(); };
+    $("rngLh").oninput = (e) => { state.lineHeight = Number(e.target.value); applyTypography(); };
+    document.querySelectorAll("#fontPills button").forEach((b) => { b.onclick = () => { state.fontStyle = b.dataset.font; applyTypography(); }; });
+    document.querySelectorAll("#widthPills button").forEach((b) => { b.onclick = () => { state.editorWidth = b.dataset.width; applyTypography(); }; });
+    $("btnToggleIndent").onclick = () => { state.indentP = !state.indentP; applyTypography(); };
+
+    $("btnNewBook").onclick = () => { $("modalBook").classList.add("open"); $("inputBookTitle").focus(); };
+    $("btnCancelBook").onclick = () => $("modalBook").classList.remove("open");
+    $("btnConfirmBook").onclick = () => createNewBook().catch(e => toast(e.message));
+
+    $("btnNewChapter").onclick = openNewChapterModal;
+    $("btnNewChapterTop").onclick = openNewChapterModal;
+    $("btnCancelChapter").onclick = () => $("modalChapter").classList.remove("open");
+    $("btnConfirmChapter").onclick = () => createNewChapter().catch(e => toast(e.message));
+
+    $("editorArea").addEventListener("input", () => {
+      const val = $("editorArea").value;
+      state.dirty = val !== state.savedText;
+      $("dirtyDot").classList.toggle("show", state.dirty); $("btnSave").disabled = !state.dirty;
+      $("statusSaved").textContent = state.dirty ? "未保存" : "已同步";
+      renderCurrentDoc(val); centerTypewriter();
+    });
+    $("editorArea").addEventListener("keyup", centerTypewriter);
+    $("editorArea").addEventListener("click", centerTypewriter);
+
+    window.addEventListener("keydown", (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
+        if (state.currentFile && state.dirty) { e.preventDefault(); saveCurrentFile(); }
+      } else if (e.key === "Escape") {
+        if ($("drawerBackdrop").classList.contains("open")) closeDrawer();
+        else if (state.wsMode === "zen" || state.wsMode === "typewriter") applyWsMode("studio");
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
+        e.preventDefault(); applyWsMode(state.wsMode === "zen" ? "studio" : "zen");
+      }
+    });
+
+    /* Init */
+    renderQuickSkins();
+    renderThemes();
+    applyTheme(state.themeId);
+    applyTypography();
+    applyWsMode(state.wsMode);
+    document.body.classList.add("shelf-loading");
+    startShelf().finally(() => document.body.classList.remove("shelf-loading"));
   </script>
 </body>
 </html>

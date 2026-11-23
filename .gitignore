@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 .DS_Store
 output/
+
+workspaces.json
+assets-fallback.json
+*.log
+_workbench-backups/

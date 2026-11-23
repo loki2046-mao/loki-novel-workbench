@@ -152,6 +152,8 @@ def write_if_missing(path: Path, content: str) -> None:
 def install_app(target_dir: Path, update_app: bool = False) -> None:
     sources = [(HTML_SRC, "小说台.html"),
                (SKILL_ROOT / "assets/cli/server.py", "server.py"),
+               (SKILL_ROOT / "assets/cli/library.py", "library.py"),
+               (SKILL_ROOT / "assets/loki-themes.js", "loki-themes.js"),
                (SKILL_ROOT / "assets/cli/启动写作台.command", "启动写作台.command")]
     backup = None
     for source, name in sources:
@@ -188,6 +190,9 @@ def init_library(target_dir: Path, update_app: bool = False) -> None:
     # 2. Rules folder & bookshelf index
     write_if_missing(target_dir / "_写作规则与Skill" / "README.md", RULES_README)
     write_if_missing(target_dir / "00-书架总览.md", INDEX_MD)
+
+    write_if_missing(target_dir / "_style-cards" / "README.md", "# 风格卡\n每张卡保存为 Markdown；在工作台按书选择。\n")
+    write_if_missing(target_dir / "_写作方法论" / "README.md", "# 写作 Skill\n每份方法保存为 Markdown；可按书勾选多份。\n")
 
     # 3. Clean fictional demo novel
     demo = target_dir / DEMO_BOOK

@@ -4,6 +4,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import threading
 import unittest
@@ -19,6 +20,7 @@ def load(name, path):
     spec.loader.exec_module(module)
     return module
 
+sys.path.insert(0, str(ROOT / "assets/cli"))
 bridge = load("bridge", ROOT / "assets/cli/server.py")
 scaffold = load("scaffold", ROOT / "scripts/init_library.py")
 
@@ -145,6 +147,57 @@ class HttpTests(unittest.TestCase):
             status, body = self.request("/api/generate", payload)
             self.assertEqual(status, 502); self.assertIn("model unsupported", json.loads(body)["error"])
         self.assertEqual(self.request("/api/generate", {**payload, "model": "bad;command"})[0], 400)
+
+
+class LibraryTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self.tmp.name).resolve()
+        self.config = patch.object(bridge.library, 'CONFIG', self.root / 'workspaces.json')
+        self.config.start()
+
+    def tearDown(self):
+        self.config.stop()
+        self.tmp.cleanup()
+
+    def test_missing_config_registers_only_application_directory(self):
+        cfg = bridge.library.config()
+        self.assertEqual(cfg['default'], 'local')
+        self.assertEqual(cfg['workspaces'][0]['path'], str(self.root))
+        self.assertFalse((self.root / 'workspaces.json').exists())
+
+    def test_optional_assets_scan_and_missing_folders(self):
+        self.assertEqual(bridge.library.scan(self.root)['assets'], {'styleCards': [], 'skills': []})
+        for name in ('_style-cards', '_写作方法论'):
+            (self.root / name).mkdir()
+            (self.root / name / 'example.md').write_text('fictional style')
+        result = bridge.library.scan(self.root)
+        self.assertEqual(len(result['assets']['styleCards']), 1)
+        self.assertEqual(len(result['assets']['skills']), 1)
+        self.assertFalse(any(x['name'].startswith('_') for x in result['books']))
+
+    def test_conflicting_save_and_undo_never_overwrite_newer_text(self):
+        p = self.root / 'chapter.md'; p.write_text('concurrent author edit')
+        with self.assertRaisesRegex(ValueError, '其他窗口'):
+            bridge.library.save(dict(workspace='local', path='chapter.md', text='AI result', expectedText='old draft'))
+        self.assertEqual(p.read_text(), 'concurrent author edit')
+        bridge.library.save(dict(workspace='local', path='chapter.md', text='accepted result', expectedText='concurrent author edit'))
+        self.assertEqual(p.read_text(), 'accepted result')
+
+    def test_path_traversal_symlinks_and_duplicate_creation_rejected(self):
+        for name in ('../outside.md', '/outside.md', '.hidden.md', 'folder/../../outside.md'):
+            with self.assertRaises(ValueError): bridge.library.document('local', name)
+        (self.root / 'link.md').symlink_to(self.root / 'real.md')
+        with self.assertRaises(ValueError): bridge.library.document('local', 'link.md')
+        (self.root / 'existing.md').write_text('keep')
+        with self.assertRaises(ValueError):
+            bridge.library.save(dict(workspace='local',path='existing.md',text='replace',createOnly=True))
+
+    def test_new_skill_append_preserves_existing_text(self):
+        data = dict(workspace='local',path='_写作方法论/example.md',text='first',expectedText=None)
+        bridge.library.save(data)
+        bridge.library.save(dict(data, text='second', append=True, expectedText='first'))
+        self.assertEqual((self.root / data['path']).read_text(), 'first\n\nsecond')
 
 if __name__ == "__main__":
     unittest.main()

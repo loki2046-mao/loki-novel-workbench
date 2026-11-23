@@ -1,7 +1,10 @@
 """Loki 写手空间的本机 CLI 桥接。"""
+import importlib
+import argparse
 import json
 import os
 import re
+import secrets
 import selectors
 from concurrent.futures import ThreadPoolExecutor
 import shutil
@@ -13,12 +16,27 @@ import uuid
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit, parse_qs
-import argparse
+import library
+
+LIBRARY_MTIME = Path(library.__file__).stat().st_mtime
+
+
+def fresh_library():
+    global LIBRARY_MTIME
+    try:
+        mtime = Path(library.__file__).stat().st_mtime
+        if mtime != LIBRARY_MTIME:
+            importlib.reload(library)
+            LIBRARY_MTIME = mtime
+    except OSError:
+        pass
+    return library
 
 ROOT = Path(__file__).resolve().parent
 HOSTS = {"localhost:8788", "127.0.0.1:8788"}
 ORIGINS = {"http://" + host for host in HOSTS}
 LIMIT = 1024 * 1024
+FILE_CODE = secrets.token_urlsafe(12)
 SLOT = threading.Lock()
 ENGINES = {
     "agy": [Path.home() / ".local/bin/agy", Path("/opt/homebrew/bin/agy"), Path("/usr/local/bin/agy")],
@@ -28,14 +46,12 @@ ENGINES = {
 
 
 def executable(engine):
-    found = shutil.which(engine)
-    if found:
-        return found
+    # Finder and terminal PATHs differ; prefer the same known client in both.
     for candidate in ENGINES[engine]:
         hit = shutil.which(str(candidate))
         if hit:
             return hit
-    return None
+    return shutil.which(engine)
 
 
 MODEL_FLAGS = {"agy": "--model", "codex": "--model"}
@@ -219,7 +235,7 @@ def generate(engine, binary, prompt, model=""):
                 args += ["--model", model]
             args += ["-"]
         elif engine == "agy":
-            args = ["-p", prompt, "--print-timeout", "5m", "--sandbox"]
+            args = ["-p", prompt, "--print-timeout", "5m"]
             if model:
                 args += ["--model", model]
         else:
@@ -278,11 +294,48 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_header("Access-Control-Allow-Headers", "Content-Type")
             self.end_headers()
 
+    def library_api(self, method):
+        url = urlsplit(self.path)
+        if url.path not in {"/api/books", "/api/workspaces", "/api/file"}:
+            return False
+        if self.headers.get("Origin") == "null" or self.headers.get("Sec-Fetch-Site") == "cross-site":
+            self.reply(403, {"error": "请从本机工作台访问"})
+            return True
+        try:
+            lib = fresh_library()
+            args = {k: v[0] for k, v in parse_qs(url.query).items()}
+            if method == "GET":
+                if url.path == "/api/workspaces":
+                    result = lib.config()
+                elif url.path == "/api/books":
+                    result = lib.scan(lib.workspace(args["workspace"]))
+                else:
+                    result = {"text": lib.document(args["workspace"], args["path"]).read_text(encoding="utf-8")}
+            else:
+                if self.headers.get_content_type() != "application/json":
+                    raise ValueError("需要 JSON")
+                size = int(self.headers.get("Content-Length", "0"))
+                if not 0 < size <= 16 * 1024 * 1024:
+                    raise ValueError("文件过大或为空请求")
+                data = json.loads(self.rfile.read(size))
+                if url.path == "/api/workspaces":
+                    result = lib.change(data)
+                elif url.path == "/api/file":
+                    result = lib.save(data)
+                else:
+                    raise ValueError("不支持该操作")
+            self.reply(200, result)
+        except (OSError, ValueError, KeyError, TypeError) as error:
+            self.reply(400, {"ok": False, "error": str(error)})
+        return True
+
     def do_GET(self):
         if not self.allowed():
             return
         if urlsplit(self.path).path == "/api/health":
             return self.reply(200, {"ok": True, "service": "loki-novel-workbench"})
+        if self.library_api("GET"):
+            return
         if urlsplit(self.path).path == "/api/engines":
             force = parse_qs(urlsplit(self.path).query).get("refresh") == ["1"]
             self.reply(200, {"ok": True, "engines": engine_catalog(force)})
@@ -294,15 +347,16 @@ class Handler(SimpleHTTPRequestHandler):
             return
         if urlsplit(self.path).path == "/":
             self.path = "/小说台.html"
-        # A novel library is not a public web directory. Serve only the workbench UI.
         path = Path(self.translate_path(self.path)).resolve()
-        if path != ROOT / "小说台.html" or not path.is_file():
+        if path not in {ROOT / "小说台.html", ROOT / "loki-themes.js"} or not path.is_file():
             self.send_error(404)
             return
         return super().send_head()
 
     def do_POST(self):
         if not self.allowed():
+            return
+        if self.library_api("POST"):
             return
         if urlsplit(self.path).path != "/api/generate":
             return self.reply(404, {"ok": False, "error": "接口不存在"})
@@ -315,6 +369,8 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(self.rfile.read(size))
             if not isinstance(data, dict):
                 raise ValueError
+            if self.headers.get("Origin") == "null" and data.get("fileCode") != FILE_CODE:
+                return self.reply(403, {"ok": False, "error": "本地连接码不正确"})
             engine, prompt = data["engine"], data["prompt"]
             model = data.get("model", "")
             if not isinstance(model, str) or (model and not re.fullmatch(r"[A-Za-z0-9._:/-]+", model)):
