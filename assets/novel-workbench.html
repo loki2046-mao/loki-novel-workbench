@@ -91,6 +91,10 @@
     .prose h1, .prose h2 { margin-top: 1.2em; }
     .prose blockquote { margin: 12px 0; padding: 10px 14px; border-left: 3px solid var(--accent); background: var(--bg-soft); border-radius: 0 8px 8px 0; }
 
+    .cli-control { width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid var(--border); border-radius: 7px; background: var(--bg-paper); color: var(--text-primary); font: inherit; font-size: 12px; }
+    .cli-label { display: block; margin-top: 9px; font-size: 12px; }
+    .cli-note { font-size: 11.5px; line-height: 1.6; color: var(--text-muted); overflow-wrap: anywhere; white-space: pre-wrap; }
+    .cli-row { display: flex; align-items: center; justify-content: space-between; font-size: 12px; }
     .rightbar { width: 292px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border); overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; }
     .card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 11px; padding: 12px; }
     .card h4 { margin: 0 0 8px; font-size: 12px; color: var(--text-muted); }
@@ -185,6 +189,28 @@
       </main>
 
       <aside class="rightbar">
+        <div class="card" id="cliCard">
+          <h4>台内 AI 创作 · 本机 CLI</h4>
+          <div class="cli-row"><span id="cliStatus" role="status">未连接</span><button id="cliCheck" class="btn">重新检测</button></div>
+          <p id="cliHint" class="cli-note"></p>
+          <label class="cli-label">创作引擎<select id="cliEngine" class="ctrl cli-control"></select></label>
+          <label class="cli-label">模型<select id="cliModel" class="ctrl cli-control"></select></label>
+          <input id="cliModelCustom" class="cli-control hidden" aria-label="手动模型 ID" placeholder="输入客户端支持的模型 ID" />
+          <label class="cli-label">需求 / 细纲<textarea id="cliBrief" class="cli-control" rows="3" placeholder="补充本次创作要求…"></textarea></label>
+          <p class="cli-note">生成会把本次写作包交给所选客户端处理，使用其账户和订阅额度。</p>
+          <div class="stack">
+            <button class="btn primary" data-cli-kind="outline" disabled>生成细纲</button>
+            <button class="btn" data-cli-kind="continue" disabled>续写正文</button>
+            <button class="btn" data-cli-kind="polish" disabled>润色当前章</button>
+          </div>
+          <p id="cliMessage" class="cli-note" role="status"></p>
+          <label class="cli-label">结果预览<textarea id="cliOutput" class="cli-control" rows="7" readonly></textarea></label>
+          <div class="stack">
+            <button id="cliFill" class="btn" disabled>填入当前编辑器（尚不保存）</button>
+            <button id="cliSaveNew" class="btn" disabled>另存 Markdown…</button>
+          </div>
+        </div>
+
         <div class="card">
           <h4>⚡ 零 API 写作包（适配任意 Agent）</h4>
           <div class="stack">
@@ -297,6 +323,7 @@
 
     function selectBook(book, preferPath) {
       state.book = book;
+      updateCliButtons();
       if (!book) return;
       $("bookSelect").value = book.name;
       const makeBtn = (f) => {
@@ -329,6 +356,7 @@
       const w = countWords(text); $("statusWords").textContent = `${w} 字`; $("zenWords").textContent = `${w} 字`;
       if (state.mode === "reader") $("readProse").innerHTML = renderMd(text);
       selectBookSilentHighlight();
+      updateCliButtons();
     }
 
     function selectBookSilentHighlight() {
@@ -346,7 +374,7 @@
       await scanBooks(state.book?.name, state.file.path);
     }
 
-    async function copyPack(kind) {
+    async function buildPack(kind) {
       if (!state.book) return;
       const coreText = (await Promise.all(state.book.core.map(async (f) => `## ${f.name}\n${(await readText(f.handle)).trim()}`))).join("\n\n");
       const lastChap = state.book.chapters[state.book.chapters.length - 1];
@@ -359,7 +387,11 @@
         polish: `# 润色《${state.book.name}》当前章\n只优化表达、动作细节与节奏，不改动既定剧情与人物关系：\n\n${rules}\n\n## 当前章正文\n${cur}`,
         sync: `# 根据本章定稿更新档案\n请基于下方最新章节，给出需要更新到「01-人物状态卡」「02-伏笔与时间线」「03-当前进度」的增量修改：\n\n## 最新章节\n${cur}`,
       };
-      await navigator.clipboard.writeText(prompts[kind]);
+      return prompts[kind];
+    }
+    async function copyPack(kind) {
+      if (!state.book) return;
+      await navigator.clipboard.writeText(await buildPack(kind));
       toast("已复制零 API 写作包，直接发给你的 AI Agent 即可");
     }
 
@@ -423,6 +455,129 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s" && state.file && state.dirty) { e.preventDefault(); saveDoc(); }
       else if (e.key === "Escape" && state.mode === "zen") applyMode("studio");
     });
+
+    // Models are supplied exclusively by the installed clients via /api/engines.
+    const bridge = location.protocol === "http:" ? location.origin : "";
+    const engineLabels = {agy: "Antigravity", codex: "Codex", cola: "Cola"};
+    let engineCatalog = {}, writing = false, generated = null;
+    let savedModels = {};
+    try { savedModels = JSON.parse(localStorage.getItem("loki:novel:cliModels") || "{}") || {}; } catch {}
+    function rememberModel() {
+      savedModels[$("cliEngine").value] = selectedModel();
+      localStorage.setItem("loki:novel:cliModels", JSON.stringify(savedModels));
+    }
+    function selectedModel() {
+      return $("cliModel").value === "__custom__" ? $("cliModelCustom").value.trim() : $("cliModel").value;
+    }
+    function updateCliButtons() {
+      const ready = !!engineCatalog[$("cliEngine").value]?.available;
+      document.querySelectorAll("[data-cli-kind]").forEach(b => b.disabled = writing || !ready || !state.book);
+      $("cliFill").disabled = writing || !generated || !state.file;
+      $("cliSaveNew").disabled = writing || !generated;
+      $("cliEngine").disabled = $("cliModel").disabled = writing;
+    }
+    function refreshModelSelect() {
+      const info = engineCatalog[$("cliEngine").value];
+      const models = Array.isArray(info?.models) ? info.models : [];
+      const canSelect = info?.supportsModel !== false;
+      const sel = $("cliModel"), custom = $("cliModelCustom");
+      sel.replaceChildren(new Option(info?.defaultModel ? `客户端默认 · ${info.defaultModel}` : "客户端默认模型", ""));
+      models.forEach(m => {
+        const option = new Option(`${m.name || m.id}${m.id === info.defaultModel ? " · 默认" : ""}`, m.id);
+        option.disabled = !canSelect;
+        sel.add(option);
+      });
+      const manual = new Option("手动输入模型 ID…", "__custom__");
+      manual.disabled = !canSelect; sel.add(manual);
+      const saved = canSelect ? savedModels[$("cliEngine").value] || "" : "";
+      sel.value = saved && !models.some(m => m.id === saved) ? "__custom__" : saved;
+      custom.value = sel.value === "__custom__" ? saved : "";
+      custom.classList.toggle("hidden", sel.value !== "__custom__");
+      custom.disabled = !canSelect;
+      const notes = [info?.modelError, info?.modelSelectionNote];
+      if (saved && sel.value === "__custom__") notes.push("上次选择不在当前目录中，请确认或改用默认模型。");
+      $("cliHint").textContent = info ? notes.filter(Boolean).join(" ") : "双击「启动写作台.command」，或运行 python3 server.py --open。";
+      updateCliButtons();
+    }
+    async function detectCLI(force = false) {
+      $("cliCheck").disabled = true;
+      $("cliStatus").textContent = "检测中…";
+      let engines = [];
+      try {
+        if (!bridge) throw Error("请从本机服务打开页面");
+        const response = await fetch(bridge + "/api/engines" + (force ? "?refresh=1" : ""), {signal: AbortSignal.timeout(65000)});
+        const data = await response.json();
+        if (!response.ok || !Array.isArray(data.engines)) throw Error("检测失败");
+        engines = data.engines;
+      } catch {}
+      engineCatalog = Object.fromEntries(engines.map(e => [e.engine, e]));
+      $("cliStatus").textContent = engines.length ? "已连接" : "未启动";
+      const menu = $("cliEngine"), previous = menu.value;
+      menu.replaceChildren();
+      Object.entries(engineLabels).forEach(([key, label]) => {
+        const available = !!engineCatalog[key]?.available;
+        const option = new Option(label + (available ? " · 就绪" : " · 不可用"), key);
+        option.disabled = !available; menu.add(option);
+      });
+      menu.value = engineCatalog[previous]?.available ? previous : engines.find(e => e.available)?.engine || "";
+      $("cliCheck").disabled = false;
+      refreshModelSelect();
+    }
+    async function runCliWriting(kind) {
+      if (writing || !state.book) return;
+      const book = state.book, file = state.file;
+      if (kind === "polish" && !book.chapters.includes(file)) return toast("请先打开要润色的正文章节");
+      writing = true; generated = null; updateCliButtons();
+      $("cliOutput").value = "";
+      $("cliMessage").textContent = "正在生成…";
+      try {
+        const prompt = await buildPack(kind);
+        if (state.book !== book || state.file !== file) throw Error("生成准备期间切换了作品或文档，请重新生成");
+        const brief = $("cliBrief").value.trim();
+        const response = await fetch(bridge + "/api/generate", {
+          method: "POST", headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({engine: $("cliEngine").value, model: selectedModel(),
+            prompt: prompt + (brief ? "\n\n## 本次要求\n" + brief : "") + "\n\n只返回 Markdown 内容，不调用工具、不直接修改文件。"}),
+          signal: AbortSignal.timeout(330000)
+        });
+        const result = await response.json();
+        if (!response.ok || !result.ok) throw Error(result.error || "生成失败");
+        generated = {book, file, kind, text: result.text};
+        $("cliOutput").value = result.text;
+        $("cliMessage").textContent = `生成完成 · ${(result.durationMs / 1000).toFixed(1)} 秒；确认后再写回。`;
+      } catch (error) { $("cliMessage").textContent = error.message; }
+      finally { writing = false; updateCliButtons(); }
+    }
+    $("cliEngine").onchange = refreshModelSelect;
+    $("cliModel").onchange = () => {
+      const custom = $("cliModel").value === "__custom__";
+      $("cliModelCustom").classList.toggle("hidden", !custom);
+      if (custom) $("cliModelCustom").focus(); else { rememberModel(); refreshModelSelect(); }
+    };
+    $("cliModelCustom").oninput = rememberModel;
+    $("cliCheck").onclick = () => detectCLI(true);
+    document.querySelectorAll("[data-cli-kind]").forEach(b => b.onclick = () => runCliWriting(b.dataset.cliKind));
+    $("cliFill").onclick = () => {
+      if (!generated || !state.file) return;
+      if (state.book !== generated.book || state.file !== generated.file) return toast("请返回生成时的作品和文档，或选择另存");
+      if (!confirm("用预览结果替换当前编辑器内容？磁盘文件会在你点击保存后更新。")) return;
+      $("editorArea").value = generated.text;
+      $("editorArea").dispatchEvent(new Event("input"));
+      if (state.mode === "reader") $("readProse").innerHTML = renderMd(generated.text);
+      toast("已填入编辑器，尚未保存");
+    };
+    $("cliSaveNew").onclick = async () => {
+      if (!generated) return;
+      if (!window.showSaveFilePicker) return toast("请复制结果，或在 Chrome / Edge 中另存");
+      const text = generated.text;
+      try {
+        const handle = await window.showSaveFilePicker({suggestedName: generated.kind === "outline" ? "下一章细纲.md" : "新章节.md",
+          types: [{description: "Markdown", accept: {"text/markdown": [".md"]}}]});
+        await writeText(handle, text);
+        toast("已另存 Markdown");
+      } catch (error) { if (error.name !== "AbortError") toast("另存失败：" + error.message); }
+    };
+    detectCLI();
 
     applyTheme(prefs.theme || "parchment");
     applyMode(state.mode);

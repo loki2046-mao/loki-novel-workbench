@@ -4,8 +4,10 @@ loki-novel-workbench 初始化脚手架（零第三方依赖）
 用法：python3 scripts/init_library.py /path/to/MyNovels
 """
 
+import argparse
+import datetime
+import uuid
 import shutil
-import sys
 from pathlib import Path
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
@@ -147,7 +149,31 @@ def write_if_missing(path: Path, content: str) -> None:
         path.write_text(content, encoding="utf-8")
 
 
-def init_library(target_dir: Path) -> None:
+def install_app(target_dir: Path, update_app: bool = False) -> None:
+    sources = [(HTML_SRC, "小说台.html"),
+               (SKILL_ROOT / "assets/cli/server.py", "server.py"),
+               (SKILL_ROOT / "assets/cli/启动写作台.command", "启动写作台.command")]
+    backup = None
+    for source, name in sources:
+        dest = target_dir / name
+        if dest.exists() or dest.is_symlink():
+            if not update_app:
+                continue
+            if dest.is_symlink() or not dest.is_file():
+                raise ValueError(f"拒绝覆盖软链接或非文件：{dest}")
+            if dest.read_bytes() == source.read_bytes():
+                continue
+            if backup is None:
+                stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                backup = target_dir / "_workbench-backups" / (stamp + "-" + uuid.uuid4().hex[:8])
+                backup.mkdir(parents=True)
+            shutil.copy2(dest, backup / name)
+        shutil.copy2(source, dest)
+    if backup:
+        print(f"    应用文件备份：{backup}")
+
+
+def init_library(target_dir: Path, update_app: bool = False) -> None:
     target_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Copy templates
@@ -171,18 +197,17 @@ def init_library(target_dir: Path) -> None:
     write_if_missing(demo / "03-当前进度.md", DEMO_PROGRESS)
     write_if_missing(demo / "正文" / "第01章-停电的钟表店.md", DEMO_CH1)
 
-    # 4. Copy standalone HTML workbench
-    if HTML_SRC.exists():
-        dest_html = target_dir / "小说台.html"
-        if not dest_html.exists():
-            shutil.copy2(HTML_SRC, dest_html)
-
+    # 4. Install UI and optional CLI runtime; never touch manuscripts on upgrade.
+    install_app(target_dir, update_app)
     print(f"OK: 已初始化本地小说写作台 -> {target_dir}")
-    print(f"    打开 {target_dir / '小说台.html'} 并选择该文件夹即可开始写作。")
+    print(f"    静态模式：打开 {target_dir / '小说台.html'} 并选择该文件夹。")
+    print("    台内生成：双击 启动写作台.command，或在该目录运行 python3 server.py --open。")
+    print("    已有安装：加 --update-app 备份并更新应用文件；正文和规则保持原样。")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("用法: python3 scripts/init_library.py <目标小说目录>")
-        sys.exit(1)
-    init_library(Path(sys.argv[1]).expanduser().resolve())
+    parser = argparse.ArgumentParser(description="初始化或升级本地小说工作台")
+    parser.add_argument("target_dir", type=Path)
+    parser.add_argument("--update-app", action="store_true", help="备份并更新 HTML、桥接服务和启动器，不覆盖小说")
+    args = parser.parse_args()
+    init_library(args.target_dir.expanduser().resolve(), args.update_app)
