@@ -193,6 +193,15 @@ class LibraryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             bridge.library.save(dict(workspace='local',path='existing.md',text='replace',createOnly=True))
 
+    def test_scan_counts_only_body_han_characters(self):
+        folder = self.root / 'Fictional' / '正文'
+        folder.mkdir(parents=True)
+        (folder / '第01章.md').write_text('---\nbook: 私有元数据\n---\n# 第一章\n汉字 abc 123！𠀀')
+        scanned = bridge.library.scan(self.root)
+        chapter = next(b for b in scanned['books'] if b['name'] == 'Fictional')['chapters'][0]
+        self.assertEqual(chapter['cnWords'], 5)
+        self.assertGreater(chapter['words'], chapter['cnWords'])
+
     def test_new_skill_append_preserves_existing_text(self):
         data = dict(workspace='local',path='_写作方法论/example.md',text='first',expectedText=None)
         bridge.library.save(data)

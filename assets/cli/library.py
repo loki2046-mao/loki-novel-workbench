@@ -12,6 +12,7 @@ LOCK = threading.RLock()
 CHAPTER_DIRS = ("正文", "番外", "04-正文")
 CORE = re.compile("伏笔|时间线|总纲|设定|圣经|大纲|细纲|人物小传|人物状态卡|进度|证据链|一致性|全本")
 SKIP = {"workbench", "loki-themes", "node_modules"}
+CN_CHAR = re.compile(r"[\u4e00-\u9fff]")
 COUNT = re.compile(r"```[\s\S]*?```|[#>*`_\-\[\]()|\s]+")
 
 
@@ -118,7 +119,7 @@ def scan(root):
                     ledger = text
                 (core if is_core else chapters).append(dict(path=prefix+f.name,
                     name=("【番外】" if prefix == "番外/" else "")+f.stem,
-                    isChapter=not is_core, words=len(COUNT.sub("", body).encode("utf-16-le"))//2))
+                    isChapter=not is_core, cnWords=len(CN_CHAR.findall(body)), words=len(COUNT.sub("", body).encode("utf-16-le"))//2))
         collect(folder)
         dirs = [] if loose else [n for n in CHAPTER_DIRS if not (folder/n).is_symlink() and (folder/n).is_dir()]
         for n in dirs:
