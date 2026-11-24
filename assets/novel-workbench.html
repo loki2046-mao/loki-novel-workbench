@@ -261,6 +261,9 @@
 
     /* Center */
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+    /* Keep the theme kit from narrowing the document workspace. */
+    .main.loki-chat-stream { padding: 0 !important; }
+    .main.loki-chat-stream > div { max-width: none !important; width: 100% !important; margin-inline: 0 !important; }
     .doc-toolbar {
       padding: 9px 18px; background: var(--bg-surface); border-bottom: 1px solid var(--border-subtle);
       display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
@@ -296,7 +299,7 @@
     .split-ref-bar { max-width: var(--editor-width); width: 100%; margin: 0 auto 14px; padding: 8px 12px; background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 12px; }
     .split-ref-bar select { flex: 1; min-width: 0; padding: 5px 8px; border-radius: 6px; border: 1px solid var(--border-subtle); background: var(--bg-canvas-soft); color: var(--text-primary); font-size: 12.5px; font-weight: 600; outline: none; }
     .prose {
-      max-width: var(--editor-width); margin: 0 auto;
+      width: 100%; max-width: var(--editor-width); margin: 0 auto;
       background: var(--bg-paper, var(--bg-elevated)); border: 1px solid var(--border-subtle);
       border-radius: var(--radius-panel, 14px); padding: 38px 46px;
       box-shadow: var(--shadow-panel, 0 6px 24px rgba(0,0,0,0.06));
@@ -320,9 +323,9 @@
     /* Right panel */
     .rightbar {
       width: 316px; flex-shrink: 0; background: var(--bg-surface); border-left: 1px solid var(--border-subtle);
-      overflow-y: auto; padding: 14px 14px 36px; display: flex; flex-direction: column; gap: 12px;
+      overflow-y: auto; padding: 12px 12px 28px; display: flex; flex-direction: column; gap: 10px;
     }
-    .card { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel, 12px); padding: 13px 14px; }
+    .card { background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-panel, 12px); padding: 11px 12px; }
     .card h4 { margin: 0 0 9px; font-size: 12px; color: var(--text-muted); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
     .stat-box { background: var(--bg-canvas-soft); border: 1px solid var(--border-subtle); border-radius: var(--radius-control, 8px); padding: 9px 6px; text-align: center; }
@@ -462,7 +465,7 @@
   .intent-pill {border:1px solid var(--border-subtle); background:var(--bg-canvas-soft); color:var(--text-secondary); padding:3px 7px; border-radius:999px; font-size:11px; cursor:pointer; font-family:inherit; transition:all 0.14s ease}
   .intent-pill:hover {border-color:var(--accent-copper); color:var(--text-primary)}
   .intent-pill.active {background:var(--accent-copper); color:var(--accent-ink, #fff); border-color:var(--accent-copper); font-weight:600}
-  .cli-chat-log {height:236px; overflow-y:auto; display:flex; flex-direction:column; gap:7px; padding:8px; border-radius:var(--radius-control, 8px); border:1px solid var(--border-subtle); background:var(--bg-canvas-soft); font-size:12px; line-height:1.5}
+  .cli-chat-log {min-height:76px; max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:7px; padding:8px; border-radius:var(--radius-control, 8px); border:1px solid var(--border-subtle); background:var(--bg-canvas-soft); font-size:12px; line-height:1.5}
   .cli-bubble {padding:7px 9px; border-radius:9px; word-break:break-word; white-space:pre-wrap; user-select:text; -webkit-user-select:text}
   .cli-bubble.user {background:var(--accent-copper); color:var(--accent-ink, #fff); align-self:flex-end; max-width:92%}
   .cli-bubble.ai {background:var(--bg-elevated); color:var(--text-primary); border:1px solid var(--border-subtle); align-self:flex-start; max-width:96%}
@@ -550,7 +553,7 @@
         </div>
       </aside>
 
-      <main class="main">
+      <main class="main loki-chat-stream">
         <div class="doc-toolbar">
           <div class="doc-title-wrap">
             <span class="dirty-dot" id="dirtyDot" title="有未保存改动"></span>
@@ -603,7 +606,7 @@
             <label style="font-size:11.5px;">模型<select id="cliModel" class="ai-textarea"></select></label>
           </div>
           <input id="cliModelCustom" class="ai-textarea hidden" type="text" placeholder="输入该客户端支持的模型 ID（留空用默认）" />
-          <details id="cliAssetsBox" class="cli-collapse" open>
+          <details id="cliAssetsBox" class="cli-collapse">
             <summary><span>🎨 风格卡 &amp; 📚 Skill</span><span id="cliSkillCount" class="bridge-badge">0 项</span></summary>
             <div class="cli-collapse-body">
               <select id="cliStyleCard" class="ai-textarea"></select>
@@ -1924,7 +1927,7 @@
       const box = $("cliChatLog");
       if (!box) return;
       if (!chatHistory.length) {
-        box.innerHTML = '<div class="cli-bubble ai"><div class="cli-bubble-text">告诉我你要做什么，生成后预览，确认后写回：<br>① <b>继续往后写</b>（追加到当前章）<br>② <b>开新的一章</b>（自动沿用旧格式新建并打开）<br>③ <b>改当前章</b>（修改当前章并支持撤销）<br>④ <b>迭代 Skill</b>（复盘修改并确认写入 Skill）<br>⑤ <b>跨章批量改</b>（如「最近3章人物OOC」「第48-51章去AI味」）</div></div>';
+        box.innerHTML = '<div class="cli-bubble ai"><div class="cli-bubble-text">直接说需求，生成后预览并确认保存，也可点击上方模式按钮切换。</div></div>';
         return;
       }
       box.innerHTML = chatHistory.map((m, idx) => {
