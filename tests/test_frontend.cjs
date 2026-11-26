@@ -280,7 +280,9 @@ test('update lookup is opt-in and sends only a fixed anonymous public GET',async
   const options=calls[0][1];
   assert.deepEqual(Object.keys(options).sort(),['cache','credentials','method','referrerPolicy','signal']);
   assert.equal(options.credentials,'omit');assert.equal(options.referrerPolicy,'no-referrer');assert.equal(options.method,'GET');
-  for(const phrase of ['git pull','python3 scripts/init_library.py <你的书架目录> --update-app','_workbench-backups/','不覆盖小说正文和作者规则','需重启']) assert.ok(fields.updateStatus.textContent.includes(phrase));
+  assert.ok(!fields.updateStatus.textContent.includes('git pull'));
+  assert.ok(!fields.updateStatus.textContent.includes('--update-app'));
+  for(const phrase of ['https://github.com/loki2046-mao/loki-novel-workbench','帮我更新小说工作台','_workbench-backups/','小说正文、作者规则和已有模板不会被覆盖']) assert.ok(fields.updateStatus.textContent.includes(phrase));
   assert.equal(fields.btnCheckUpdate.disabled,false);
 });
 test('offline, CORS, rate limit, no release, malformed response and timeout leave writing unblocked and allow retry',async()=>{

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>小说工作台（49 套主题合集）</title>
-  <meta name="workbench-version" content="1.0.0">
+  <meta name="workbench-version" content="1.0.1">
   <!-- 加载 loki-theme-kit 全部 35 套成套外观主题与结构件规则（关闭独立悬浮球，由本页统一 49 套皮肤面板接管） -->
   <script src="./loki-themes.js" data-theme="loki-ease" data-switcher="off"></script>
   <style>
@@ -899,7 +899,7 @@
         const release = await response.json();
         if (release.draft || release.prerelease) throw new Error('not a stable release');
         status.textContent = isNewerRelease(release.tag_name, LOCAL_VERSION)
-          ? `发现新版本 ${release.tag_name}（当前 ${LOCAL_VERSION}）。\n先在 Skill 仓库目录运行 git pull，再用更新后的仓库运行：\npython3 scripts/init_library.py <你的书架目录> --update-app\n应用文件会备份到 _workbench-backups/，不覆盖小说正文和作者规则；升级后如在跑本地服务需重启。\n发布说明：\n${String(release.body || '暂无说明').slice(0, 12000)}`
+          ? `发现新版本 ${release.tag_name}（当前 ${LOCAL_VERSION}）。\n把 https://github.com/loki2046-mao/loki-novel-workbench 发给你的 Agent，或对它说「帮我更新小说工作台」。Agent 会定位已有书架并升级，无需先更新已安装的 Skill 或自己跑命令。\n旧应用文件会备份到 _workbench-backups/，小说正文、作者规则和已有模板不会被覆盖。\n发布说明：\n${String(release.body || '暂无说明').slice(0, 12000)}`
           : `当前 ${LOCAL_VERSION} 已是最新版本（或本地版本更新）。`;
       } catch (_) {
         status.textContent = '暂时无法检查更新（网络、限流或尚无 Release），可稍后重试；不影响写作。';

@@ -154,11 +154,22 @@ def install_app(target_dir: Path, update_app: bool = False) -> None:
     version = (SKILL_ROOT / "VERSION").read_text().strip()
     if not re.fullmatch(r"\d+\.\d+\.\d+", version) or f'<meta name="workbench-version" content="{version}">' not in HTML_SRC.read_text():
         raise ValueError("版本标记不一致，请先运行 python3 scripts/sync_version.py")
-    sources = [(SKILL_ROOT / "VERSION", "VERSION"), (HTML_SRC, "小说台.html"),
+    sources = [(HTML_SRC, "小说台.html"),
                (SKILL_ROOT / "assets/cli/server.py", "server.py"),
                (SKILL_ROOT / "assets/cli/library.py", "library.py"),
                (SKILL_ROOT / "assets/loki-themes.js", "loki-themes.js"),
-               (SKILL_ROOT / "assets/cli/启动写作台.command", "启动写作台.command")]
+               (SKILL_ROOT / "assets/cli/启动写作台.command", "启动写作台.command"),
+               (SKILL_ROOT / "VERSION", "VERSION")]  # Mark complete only after app copies succeed.
+    # Validate every application path before writing any file.
+    for source, name in sources:
+        if not source.is_file():
+            raise ValueError(f"缺少应用源文件：{source}")
+        dest = target_dir / name
+        if update_app and (dest.is_symlink() or (dest.exists() and not dest.is_file())):
+            raise ValueError(f"拒绝覆盖软链接或非文件：{dest}")
+    backup_root = target_dir / "_workbench-backups"
+    if update_app and (backup_root.is_symlink() or (backup_root.exists() and not backup_root.is_dir())):
+        raise ValueError(f"无效的备份目录：{backup_root}")
     backup = None
     for source, name in sources:
         dest = target_dir / name
