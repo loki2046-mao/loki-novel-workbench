@@ -25,6 +25,20 @@ bridge = load("bridge", ROOT / "assets/cli/server.py")
 scaffold = load("scaffold", ROOT / "scripts/init_library.py")
 
 class InstallTests(unittest.TestCase):
+    def test_version_source_and_shipped_markers_match(self):
+        subprocess.run([sys.executable, '-B', str(ROOT / 'scripts/sync_version.py'), '--check'], check=True)
+        with tempfile.TemporaryDirectory() as work:
+            root = Path(work)
+            scaffold.init_library(root)
+            version = (ROOT / 'VERSION').read_text()
+            self.assertEqual((root / 'VERSION').read_text(), version)
+            (root / 'VERSION').write_text('0.0.1\n')
+            scaffold.init_library(root, update_app=True)
+            self.assertEqual((root / 'VERSION').read_text(), version)
+            self.assertEqual(next((root / '_workbench-backups').glob('*/VERSION')).read_text(), '0.0.1\n')
+            self.assertIn(f'content="{version.strip()}"', (root / '小说台.html').read_text())
+
+
     def test_upgrade_preserves_manuscripts_and_backs_up_custom_app(self):
         with tempfile.TemporaryDirectory() as work:
             root = Path(work)

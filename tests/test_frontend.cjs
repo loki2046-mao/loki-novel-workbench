@@ -263,3 +263,40 @@ test('applyEditPatches applies surgical search-and-replace blocks without rewrit
   assert.equal(full.isPatch, false);
   assert.equal(full.text, '完整新文档');
 });
+
+function updateRuntime(fetchImpl, timeout = setTimeout) {
+  const fields = {btnCheckUpdate:{disabled:false,addEventListener:(event,fn)=>{fields.click=fn}},updateStatus:{textContent:''},localVersion:{textContent:''}};
+  const context = vm.createContext({document:{querySelector:()=>({content:'1.0.0'}),getElementById:id=>fields[id]},fetch:fetchImpl,AbortController,setTimeout:timeout,clearTimeout});
+  vm.runInContext(section('    // Manual public release lookup:', '    // End manual release lookup.'),context);
+  return {fields,run:s=>vm.runInContext(s,context)};
+}
+test('update lookup is opt-in and sends only a fixed anonymous public GET',async()=>{
+  const calls=[];
+  const {fields}=updateRuntime(async(...args)=>{calls.push(args);return {ok:true,json:async()=>({tag_name:'v1.2.0',body:'<script>untrusted</script>'})}});
+  assert.equal(calls.length,0);
+  await fields.click();
+  assert.equal(calls.length,1);
+  assert.equal(calls[0][0],'https://api.github.com/repos/loki2046-mao/loki-novel-workbench/releases/latest');
+  const options=calls[0][1];
+  assert.deepEqual(Object.keys(options).sort(),['cache','credentials','method','referrerPolicy','signal']);
+  assert.equal(options.credentials,'omit');assert.equal(options.referrerPolicy,'no-referrer');assert.equal(options.method,'GET');
+  for(const phrase of ['git pull','python3 scripts/init_library.py <你的书架目录> --update-app','_workbench-backups/','不覆盖小说正文和作者规则','需重启']) assert.ok(fields.updateStatus.textContent.includes(phrase));
+  assert.equal(fields.btnCheckUpdate.disabled,false);
+});
+test('offline, CORS, rate limit, no release, malformed response and timeout leave writing unblocked and allow retry',async()=>{
+  for(const fetchImpl of [async()=>{throw Error('offline/CORS')},async()=>({ok:false,status:403}),async()=>({ok:false,status:404}),async()=>({ok:true,json:async()=>({tag_name:'bad'})}),async()=>({ok:true,json:async()=>{throw Error('bad JSON')}}),(_url,{signal})=>new Promise((resolve,reject)=>signal.addEventListener('abort',()=>reject(Error('timeout'))))]) {
+    const {fields}=updateRuntime(fetchImpl,fn=>setTimeout(fn,5));
+    await fields.click();
+    assert.match(fields.updateStatus.textContent,/不影响写作/);
+    assert.equal(fields.btnCheckUpdate.disabled,false);
+    await fields.click();
+    assert.equal(fields.btnCheckUpdate.disabled,false);
+  }
+});
+test('stable version comparison is numeric and never proposes a downgrade',async()=>{
+  const {run,fields}=updateRuntime(async()=>({ok:true,json:async()=>({tag_name:'v1.0.0'})}));
+  assert.equal(run('isNewerRelease("v1.10.0","1.9.0")'),true);
+  assert.equal(run('isNewerRelease("v1.0.0","1.0.1")'),false);
+  assert.throws(()=>run('isNewerRelease("v1.1.0-beta.1","1.0.0")'));
+  await fields.click();assert.match(fields.updateStatus.textContent,/已是最新/);
+});

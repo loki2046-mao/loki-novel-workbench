@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Loki 的写手空间（49 套主题合集）</title>
+  <title>小说工作台（49 套主题合集）</title>
+  <meta name="workbench-version" content="1.0.0">
   <!-- 加载 loki-theme-kit 全部 35 套成套外观主题与结构件规则（关闭独立悬浮球，由本页统一 49 套皮肤面板接管） -->
   <script src="./loki-themes.js" data-theme="loki-ease" data-switcher="off"></script>
   <style>
@@ -542,7 +543,7 @@
     <header class="topbar loki-workbench-toolbar">
       <div class="brand">
         <div class="brand-logo loki-header-sticker">L</div>
-        <span class="loki-sticker-title">Loki 的写手空间</span>
+        <span class="loki-sticker-title">小说工作台</span>
         <span class="dir-pill" id="dirBadge">未连接目录</span>
       </div>
 
@@ -562,6 +563,14 @@
         <button id="btnSkinDrawer" class="btn loki-button-secondary">🎨 皮肤 (49)</button>
       </div>
     </header>
+
+    <details style="padding:6px 18px; flex-shrink:0; max-height:35vh; overflow:auto;">
+      <summary style="cursor:pointer;">关于与更新</summary>
+      <span id="localVersion"></span>
+      <button id="btnCheckUpdate" class="btn loki-button-secondary" type="button">检查更新</button>
+      <p style="font-size:12px;">仅手动检查，不会自动联网；只读取 GitHub 公开版本信息。</p>
+      <p id="updateStatus" role="status" style="white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;"></p>
+    </details>
 
     <div id="emptyState" class="empty-state">
       <div class="empty-card loki-surface-strong loki-empty-hero">
@@ -859,6 +868,49 @@
   <div id="toast" class="toast"></div>
 
   <script>
+
+    // Manual public release lookup: no workspace state or local paths enter the request.
+    const LOCAL_VERSION = document.querySelector('meta[name="workbench-version"]').content;
+    const RELEASE_API = 'https://api.github.com/repos/loki2046-mao/loki-novel-workbench/releases/latest';
+    function releaseVersion(tag) {
+      const match = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/.exec(tag);
+      if (!match) throw new Error('unsupported version');
+      return match.slice(1).map(Number);
+    }
+    function isNewerRelease(tag, local) {
+      const a = releaseVersion(tag), b = releaseVersion(local);
+      for (let i = 0; i < 3; i++) if (a[i] !== b[i]) return a[i] > b[i];
+      return false;
+    }
+    async function checkForUpdates() {
+      const button = document.getElementById('btnCheckUpdate');
+      const status = document.getElementById('updateStatus');
+      if (button.disabled) return;
+      button.disabled = true;
+      status.textContent = '正在检查公开版本…';
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 10000);
+      try {
+        const response = await fetch(RELEASE_API, {
+          method: 'GET', credentials: 'omit', referrerPolicy: 'no-referrer',
+          cache: 'no-store', signal: controller.signal,
+        });
+        if (!response.ok) throw new Error('release unavailable');
+        const release = await response.json();
+        if (release.draft || release.prerelease) throw new Error('not a stable release');
+        status.textContent = isNewerRelease(release.tag_name, LOCAL_VERSION)
+          ? `发现新版本 ${release.tag_name}（当前 ${LOCAL_VERSION}）。\n先在 Skill 仓库目录运行 git pull，再用更新后的仓库运行：\npython3 scripts/init_library.py <你的书架目录> --update-app\n应用文件会备份到 _workbench-backups/，不覆盖小说正文和作者规则；升级后如在跑本地服务需重启。\n发布说明：\n${String(release.body || '暂无说明').slice(0, 12000)}`
+          : `当前 ${LOCAL_VERSION} 已是最新版本（或本地版本更新）。`;
+      } catch (_) {
+        status.textContent = '暂时无法检查更新（网络、限流或尚无 Release），可稍后重试；不影响写作。';
+      } finally {
+        clearTimeout(timer);
+        button.disabled = false;
+      }
+    }
+    document.getElementById('localVersion').textContent = `小说工作台 ${LOCAL_VERSION} `;
+    document.getElementById('btnCheckUpdate').addEventListener('click', checkForUpdates);
+    // End manual release lookup.
     /* 35 套 Loki 主题 + 14 套写作专属主题 = 49 套统一目录 */
     const ALL_THEMES = [
       // Loki 护眼组（3）
@@ -2002,7 +2054,7 @@
       cardSel.replaceChildren(new Option("（不绑定风格卡）", ""));
       state.assets.styleCards.forEach(c => cardSel.add(new Option(c.name, c.path)));
       if (state.assets.missingFromServer) {
-        hint.textContent = "提示：请刷新或重启写手空间以加载 _style-cards 与 _写作方法论。";
+        hint.textContent = "提示：请刷新或重启小说工作台以加载 _style-cards 与 _写作方法论。";
         hint.classList.remove("hidden");
       } else if (!state.assets.styleCards.length && !state.assets.skills.length) {
         hint.textContent = "当前书架根目录未检测到 _style-cards 或 _写作方法论 文件夹。";
@@ -3221,7 +3273,7 @@
           }
           const today = new Date().toISOString().slice(0, 10);
           const block = `### ${today} · 复盘沉淀（《${book.name}》）\n\n${distilled}\n`;
-          const defaultHeader = "# 写作偏好与去 AI 味迭代记录\n\n> 由「Loki 的写手空间」对话自动沉淀，勾选后每次创作自动生效。";
+          const defaultHeader = "# 写作偏好与去 AI 味迭代记录\n\n> 由「小说工作台」对话自动沉淀，勾选后每次创作自动生效。";
           const nextSkillText = prevSkillText ? `${prevSkillText}\n\n${block}` : (targetPath === DEFAULT_ITERATION_SKILL ? `${defaultHeader}\n\n${block}` : block);
           await writeWorkspaceRelPath(targetPath, nextSkillText, prevSkillText);
           if (targetPath.startsWith("_写作方法论/")) {

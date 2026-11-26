@@ -1,10 +1,10 @@
-# Loki Novel Workbench · 赛博小熊猫的零 API 本地小说写作台
+# 小说工作台 · 赛博小熊猫的零 API 本地小说写作台
 
 > 一个纯本地、零 API Key、兼容 Obsidian 的个人长篇小说写作台 Skill + 开箱即用脚手架。
 >
 > 把你攒下来的写小说 Skill、设定集、人物状态卡、伏笔账本和正文全部留在自己电脑本地，直接用你手头已订阅的 AI 会员 / 本地 Agent 完成从细纲、续写到润色的完整闭环。
 
-![Loki Novel Workbench 实拍预览](docs/preview-workbench.png)
+![小说工作台 实拍预览](docs/preview-workbench.png)
 
 ## 为什么做这个？
 
@@ -54,7 +54,7 @@ loki-novel-workbench/
 
 ```text
 ┌──────────────────────────────────────────────────────────────────┐
-│                     Loki Novel Workbench                         │
+│                     小说工作台                         │
 ├─────────────────────────┬────────────────────────────────────────┤
 │  本地 Markdown 书架      │         单页写作台 (小说台.html)         │
 │  ├── 00-书架总览.md      │  • 49 套护眼主题 & 字号/行距微调          │
@@ -107,11 +107,22 @@ macOS 可双击 `启动写作台.command`。默认打开 `http://127.0.0.1:8788/
 
 ### 升级已有安装
 
+升级分两步，更新 Skill 仓库不会自动更新已经初始化的书架：
+
+1. 在克隆的 `loki-novel-workbench`（Skill 仓库）目录运行 `git pull`，取得最新脚本、Skill 和资源。
+2. 仍在更新后的仓库目录运行：
+
 ```bash
 python3 scripts/init_library.py /path/to/MyNovels --update-app
 ```
 
-应用文件自动备份到目标目录的 `_workbench-backups/`，再更新页面、主题资源、服务、library.py 和启动器。小说、作者规则和已有模板不覆盖；自定义过的旧页面可从备份恢复。升级后重启服务。不加 `--update-app` 时仍保持已有文件不覆盖。
+应用文件自动备份到书架目录的 `_workbench-backups/`，再更新页面、版本号、主题资源、服务、library.py 和启动器。小说正文、作者规则和已有模板不覆盖；自定义过的旧页面可从备份恢复。升级后如在跑本地服务需重启。不加 `--update-app` 时仍保持已有文件不覆盖。
+
+写作台「关于与更新」中可点击「检查更新」，默认不会自动联网。静态打开也可手动检查；仅请求 GitHub 公开 Release 信息，不发送稿件、路径或遥测。网络失败、限流或尚无 Release 时仅显示一句提示，不影响写作。
+
+想自动收到更新通知，打开 https://github.com/loki2046-mao/loki-novel-workbench 点 **Watch → Releases only**。
+
+版本唯一来源为根目录 `VERSION`。维护者改版本后运行 `python3 scripts/sync_version.py`，同步生成 `SKILL.md` 与 HTML 内嵌版本；`python3 scripts/sync_version.py --check` 可检查漂移。安装与升级同步复制 `VERSION` 和带版本的 HTML，因此静态页面无需读取本地文件或启动服务即可显示版本。
 
 ## 本次升级：实时流式直写、零弹窗纸面修订、局部修改省额度与稳定性全面加固
 

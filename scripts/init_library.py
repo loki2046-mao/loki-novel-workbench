@@ -7,6 +7,7 @@ loki-novel-workbench 初始化脚手架（零第三方依赖）
 import argparse
 import datetime
 import uuid
+import re
 import shutil
 from pathlib import Path
 
@@ -150,7 +151,10 @@ def write_if_missing(path: Path, content: str) -> None:
 
 
 def install_app(target_dir: Path, update_app: bool = False) -> None:
-    sources = [(HTML_SRC, "小说台.html"),
+    version = (SKILL_ROOT / "VERSION").read_text().strip()
+    if not re.fullmatch(r"\d+\.\d+\.\d+", version) or f'<meta name="workbench-version" content="{version}">' not in HTML_SRC.read_text():
+        raise ValueError("版本标记不一致，请先运行 python3 scripts/sync_version.py")
+    sources = [(SKILL_ROOT / "VERSION", "VERSION"), (HTML_SRC, "小说台.html"),
                (SKILL_ROOT / "assets/cli/server.py", "server.py"),
                (SKILL_ROOT / "assets/cli/library.py", "library.py"),
                (SKILL_ROOT / "assets/loki-themes.js", "loki-themes.js"),
@@ -166,7 +170,7 @@ def install_app(target_dir: Path, update_app: bool = False) -> None:
             if dest.read_bytes() == source.read_bytes():
                 continue
             if backup is None:
-                stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+                stamp = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=8))).strftime("%Y%m%d-%H%M%S")
                 backup = target_dir / "_workbench-backups" / (stamp + "-" + uuid.uuid4().hex[:8])
                 backup.mkdir(parents=True)
             shutil.copy2(dest, backup / name)

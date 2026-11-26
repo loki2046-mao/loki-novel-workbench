@@ -1,6 +1,7 @@
 ---
 name: loki-novel-workbench
-description: Build a pure-local, zero-API-key personal novel writing workbench (Loki Novel Workbench) inside a user's local folder using bundled templates, an eye-care single-page HTML editor, an init script, and the user's existing AI subscription. Use when the user asks to build a local novel workbench, set up an Obsidian-compatible fiction writing space, organize novel drafts with character sheets and outlines, or create a zero-API writing tool powered by their existing AI agent subscription.
+version: 1.0.0
+description: Build a pure-local, zero-API-key personal novel writing workbench (loki-novel-workbench) inside a user's local folder using bundled templates, an eye-care single-page HTML editor, an init script, and the user's existing AI subscription. Use when the user asks to build a local novel workbench, set up an Obsidian-compatible fiction writing space, organize novel drafts with character sheets and outlines, or create a zero-API writing tool powered by their existing AI agent subscription.
 ---
 
 # loki-novel-workbench
@@ -66,3 +67,17 @@ This creates:
 - **Never require external API keys or third-party reverse proxies**: Reuse the user's existing subscription safely via desktop Agent file access, clipboard Writing Packs, or official locally installed CLIs.
 - **Keep templates clean and fictional**: Never embed real people's names or private author style cards into public templates or demo chapters.
 - **Avoid heavy stacks**: Keep the workbench zero-build (plain Markdown + single-file HTML) so manuscripts remain portable and never break on dependency updates.
+
+## 更新 Skill 与已安装书架
+
+两条路径需要分别执行：先在 `loki-novel-workbench` Skill 仓库目录运行 `git pull`，取得最新脚本、Skill 和资源；再从更新后的仓库运行：
+
+```bash
+python3 scripts/init_library.py <已初始化的书架目录> --update-app
+```
+
+应用文件（含版本号）备份到书架内 `_workbench-backups/`，不覆盖小说正文、作者规则和已有模板。升级后如在跑本地服务需重启。
+
+写作台「关于与更新」提供手动「检查更新」，默认不会自动联网；只读取 GitHub 公开版本信息，不发送用户数据，失败不阻断写作。想自动收到通知，打开 https://github.com/loki2046-mao/loki-novel-workbench 点 **Watch → Releases only**。
+
+版本以根目录 `VERSION` 为唯一来源；维护者运行 `python3 scripts/sync_version.py` 生成本文件与 HTML 的版本标记，测试校验一致性。
