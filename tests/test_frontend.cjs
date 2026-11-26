@@ -51,3 +51,215 @@ test('progress stats preserve notes and reject concurrent card edits',async()=>{
   const previous=card;conflict=true;const failed=await run('syncBookProgress(book)');
   assert.equal(failed.updated,false);assert.equal(card,previous+'作者并发修改');
 });
+
+function navigationRuntime() {
+  const makeClassList = (initial = []) => {
+    const set = new Set(initial);
+    return {
+      add: (...cls) => cls.forEach(c => set.add(c)),
+      remove: (...cls) => cls.forEach(c => set.delete(c)),
+      toggle: (c, force) => force === undefined ? (set.has(c) ? set.delete(c) : set.add(c)) : (force ? set.add(c) : set.delete(c)),
+      contains: c => set.has(c),
+    };
+  };
+  const elements = {
+    editorArea: { value: '' },
+    bookSelect: { value: '' },
+    docTitle: { textContent: '' },
+    dirtyDot: { classList: makeClassList() },
+    btnSave: { disabled: true },
+    btnZenSave: { disabled: true },
+    btnToggleEdit: { disabled: true },
+    btnCopyPack: { disabled: true },
+    btnCopyPackSide: { disabled: true },
+    statusSaved: { textContent: '' },
+    cliMessage: { textContent: '' },
+    modalBook: { classList: makeClassList() },
+    modalChapter: { classList: makeClassList() },
+  };
+  const storage = new Map();
+  const historyStates = [];
+  const context = vm.createContext({
+    console, Date, DOMException, encodeURIComponent,
+    localStorage: {
+      getItem: k => storage.has(k) ? storage.get(k) : null,
+      setItem: (k, v) => storage.set(k, String(v)),
+      removeItem: k => storage.delete(k),
+    },
+    history: {
+      state: null,
+      pushState(s) { this.state = s; historyStates.push({ op: 'push', s }); },
+      replaceState(s) { this.state = s; historyStates.push({ op: 'replace', s }); },
+    },
+    confirm: () => false,
+    $: id => elements[id],
+    toast: () => {},
+    renderCurrentDoc: () => {},
+    renderNav: () => {},
+    updateRightPanel: () => {},
+    applyWsMode: () => {},
+    syncBookBindingUI: () => {},
+    renderChatLog: () => {},
+    updateCliButtons: () => {},
+    syncBookProgress: async () => ({ updated: true }),
+    parseForeshadowing: () => [],
+    countWords: s => (s || '').replace(/\s+/g, '').length,
+    countCnWords: s => ((s || '').match(/[\u4e00-\u9fff]/g) || []).length,
+    serviceMode: true,
+    chatRoot: null, chatBook: '', chatHistory: [], undoSnapshots: {},
+    lastAiBaseline: { filePath: '', text: '', source: '' },
+  });
+  const initSnippet = section('    const state = {', '    const $ = (id) =>');
+  const selectSnippet = section('    async function selectBook(', '    function renderNav(');
+  const openSnippet = section('    function commitOpenedFile(', '    function renderCurrentDoc(');
+  const saveSnippet = section('    async function saveCurrentFile(', '    let splitRefPath =');
+  const modalSnippet = section('    function openModal(', '    async function openNewBookModal(');
+  vm.runInContext('const prefs = {};\n' + initSnippet + '\n' + selectSnippet + '\n' + openSnippet + '\n' + saveSnippet + '\n' + modalSnippet, context);
+  return { context, elements, historyStates, run: s => vm.runInContext(s, context) };
+}
+
+test('canceling book switch keeps book, editor, chat, and undo history intact', async () => {
+  const { context, elements, run } = navigationRuntime();
+  context.readHandleText = async h => h.text;
+  context.askUnsavedChoice = async () => 'cancel';
+  run(`
+    const root = { ws: { id: 'ws1' }, name: 'shelf' };
+    const ch1 = { path: '正文/第1章.md', name: '第1章', isChapter: true, words: 4, handle: { text: '旧书原稿' } };
+    const ch2 = { path: '正文/第1章.md', name: '新书第1章', isChapter: true, words: 4, handle: { text: '新书内容' } };
+    const bookA = { name: '旧书', coreFiles: [], chapters: [ch1], totalWords: 4 };
+    const bookB = { name: '新书', coreFiles: [], chapters: [ch2], totalWords: 4 };
+    state.rootHandle = root;
+    state.books = [bookA, bookB];
+    state.currentBook = bookA;
+    state.currentFile = ch1;
+    state.savedText = '旧书原稿';
+    state.dirty = true;
+    chatRoot = root; chatBook = '旧书';
+    chatHistory = [{ role: 'user', text: '保留对话' }];
+    undoSnapshots = { u1: { prevText: '旧书原稿' } };
+    $('editorArea').value = '旧书未保存修改';
+    $('bookSelect').value = '新书';
+  `);
+  const switched = await run('selectBook("新书")');
+  assert.equal(switched, false);
+  assert.equal(run('state.currentBook.name'), '旧书');
+  assert.equal(run('state.currentFile.name'), '第1章');
+  assert.equal(elements.bookSelect.value, '旧书');
+  assert.equal(elements.editorArea.value, '旧书未保存修改');
+  assert.equal(run('chatHistory.length'), 1);
+  assert.equal(run('Object.keys(undoSnapshots).length'), 1);
+});
+
+test('rapid chapter switching ignores slow stale read and preserves doc on read error', async () => {
+  const { context, elements, run } = navigationRuntime();
+  let resolveSlow;
+  context.readHandleText = h => {
+    if (h === 'slow') return new Promise(r => { resolveSlow = r; });
+    if (h === 'fast') return Promise.resolve('第二章内容');
+    if (h === 'broken') return Promise.reject(new Error('磁盘读取失败'));
+    return Promise.resolve('初始');
+  };
+  run(`
+    const root = { ws: { id: 'ws1' }, name: 'shelf' };
+    const ch1 = { path: '正文/第1章.md', name: '第1章', isChapter: true, handle: 'slow' };
+    const ch2 = { path: '正文/第2章.md', name: '第2章', isChapter: true, handle: 'fast' };
+    const ch3 = { path: '正文/第3章.md', name: '第3章', isChapter: true, handle: 'broken' };
+    state.rootHandle = root;
+    state.currentBook = { name: '测试书', coreFiles: [], chapters: [ch1, ch2, ch3] };
+    state.books = [state.currentBook];
+    globalThis.__chs = { ch1, ch2, ch3 };
+  `);
+  const p1 = run('openFile(__chs.ch1)');
+  const p2 = run('openFile(__chs.ch2)');
+  assert.equal(await p2, true);
+  assert.equal(run('state.currentFile.name'), '第2章');
+  assert.equal(elements.editorArea.value, '第二章内容');
+  resolveSlow('第一章迟到内容');
+  assert.equal(await p1, false);
+  assert.equal(run('state.currentFile.name'), '第2章');
+  assert.equal(elements.editorArea.value, '第二章内容');
+  assert.equal(await run('openFile(__chs.ch3)'), false);
+  assert.equal(run('state.currentFile.name'), '第2章');
+  assert.equal(elements.editorArea.value, '第二章内容');
+});
+
+test('saving preserves editor content typed mid-save without overwriting', async () => {
+  const { context, elements, run } = navigationRuntime();
+  let savedPayload = null;
+  context.writeHandleText = async (h, text) => {
+    savedPayload = text;
+    elements.editorArea.value = text + '继续敲的字';
+  };
+  run(`
+    const ch1 = { path: '正文/第1章.md', name: '第1章', isChapter: true, words: 0, handle: 'h1' };
+    state.rootHandle = { ws: { id: 'ws1' }, name: 'shelf' };
+    state.currentBook = { name: '测试书', coreFiles: [], chapters: [ch1], totalWords: 0 };
+    state.currentFile = ch1;
+    state.savedText = '旧稿';
+    state.dirty = true;
+    $('editorArea').value = '保存时的正文';
+  `);
+  const ok = await run('saveCurrentFile()');
+  assert.equal(ok, true);
+  assert.equal(savedPayload, '保存时的正文');
+  assert.equal(elements.editorArea.value, '保存时的正文继续敲的字');
+  assert.equal(run('state.dirty'), true);
+  assert.equal(elements.btnSave.disabled, false);
+});
+
+test('modal cannot be dismissed while creation is in-flight and AI undo preserves manual edits', () => {
+  const { elements, run } = navigationRuntime();
+  elements.modalChapter.classList.add('open');
+  run('isCreatingChapter = true');
+  assert.equal(run('closeModal("modalChapter")'), false);
+  assert.equal(elements.modalChapter.classList.contains('open'), true);
+  run('isCreatingChapter = false');
+  assert.equal(run('closeModal("modalChapter")'), true);
+  assert.equal(elements.modalChapter.classList.contains('open'), false);
+  assert.equal(html.includes('prevText: diskBefore'), false);
+  assert.equal(html.includes('!e.isComposing'), true);
+});
+
+test('selective diff review accepts or rejects individual hunks cleanly', () => {
+  const ctx = vm.createContext({ escapeHtml: s => s });
+  vm.runInContext(section('    function computeDiffSegments(', '    function reviewGenerated('), ctx);
+  const oldText = '第一段保持不变\n第二段旧内容\n第三段保持不变\n第四段要删掉\n第五段保持不变';
+  const newText = '第一段保持不变\n第二段新改写\n第三段保持不变\n第五段保持不变\n第六段新增';
+  const segs = vm.runInContext(`computeDiffSegments(${JSON.stringify(oldText)}, ${JSON.stringify(newText)})`, ctx);
+  const hunks = segs.filter(s => s.type === 'change');
+  assert.equal(hunks.length, 3);
+  assert.equal(hunks.map(h => h.kind).join(','), 'mod,del,add');
+  assert.equal(ctx.composeDiffSegments(segs), newText);
+  hunks[1].accepted = false;
+  assert.equal(ctx.composeDiffSegments(segs), '第一段保持不变\n第二段新改写\n第三段保持不变\n第四段要删掉\n第五段保持不变\n第六段新增');
+  hunks.forEach(h => { h.accepted = false; });
+  assert.equal(ctx.composeDiffSegments(segs), oldText);
+});
+
+test('applyEditPatches applies surgical search-and-replace blocks without rewriting whole doc', () => {
+  const ctx = vm.createContext({ escapeHtml: s => s, stripCodeFence: s => String(s || '').trim() });
+  vm.runInContext(section('    function computeDiffSegments(', '    function reviewGenerated('), ctx);
+  const original = '---\nbook: "旧书名"\n---\n# 总纲\n- **书名**：旧书名\n正文保持四千字不变。';
+  const patchOut = [
+    '<<<<<<< 原文',
+    'book: "旧书名"',
+    '=======',
+    'book: "雨夜来信"',
+    '>>>>>>> 改为',
+    '',
+    '<<<<<<< 原文',
+    '- **书名**：旧书名',
+    '=======',
+    '- **书名**：雨夜来信',
+    '>>>>>>> 改为',
+  ].join('\n');
+  const res = ctx.applyEditPatches(original, patchOut);
+  assert.equal(res.isPatch, true);
+  assert.equal(res.applied, 2);
+  assert.equal(res.failed, 0);
+  assert.equal(res.text, '---\nbook: "雨夜来信"\n---\n# 总纲\n- **书名**：雨夜来信\n正文保持四千字不变。');
+  // Fallback when full document is returned
+  const full = ctx.applyEditPatches(original, '完整新文档');
+  assert.equal(full.isPatch, false);
+  assert.equal(full.text, '完整新文档');
+});

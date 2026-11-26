@@ -450,8 +450,18 @@
     .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
     .hidden { display: none !important; }
-    @media (max-width: 1040px) { .rightbar { display: none; } }
+    #btnToggleRightbar { display: none; }
+    @media (max-width: 1040px) {
+      #btnToggleRightbar { display: inline-flex; }
+      .rightbar { display: none; }
+      body.rightbar-drawer-open .rightbar {
+        display: flex; position: fixed; top: 54px; right: 0; bottom: 30px;
+        width: min(336px, 92vw); z-index: 55; box-shadow: -10px 0 28px rgba(0,0,0,0.22);
+      }
+    }
     @media (max-width: 820px) { .mode-bar { display: none; } .sidebar { width: 215px; } }
+    dialog.loki-dialog { border: 1px solid var(--border-subtle); border-radius: var(--radius-panel, 14px); padding: 22px; background: var(--bg-elevated); color: var(--text-primary); box-shadow: var(--shadow-panel, 0 16px 42px rgba(0,0,0,0.28)); }
+    dialog.loki-dialog::backdrop { background: rgba(0,0,0,0.45); backdrop-filter: blur(2px); }
   #cliCard, #cliCard label {display:grid; gap:6px} #cliCard small {color:var(--text-muted); line-height:1.45} #cliCard textarea {box-sizing:border-box}
   .cli-head-row {display:flex; align-items:center; justify-content:space-between; gap:6px}
   .cli-row-2 {display:grid; grid-template-columns:1fr 1fr; gap:6px}
@@ -479,6 +489,44 @@
   .cli-collapse summary::-webkit-details-marker {display:none}
   .cli-collapse-body {display:grid; gap:6px; margin-top:7px}
   body.shelf-loading #emptyState { visibility:hidden }
+  /* Inline editorial revision bar & paper canvas (zero modal) */
+  .inline-review-bar { padding:7px 18px; background:var(--bg-surface); border-bottom:1px solid var(--border-active, var(--border-subtle)); display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; font-size:12px; }
+  .inline-review-left, .inline-review-right { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .rev-status-pill { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--accent-copper); padding:2px 9px; border-radius:999px; background:var(--bg-canvas-soft); }
+  .rev-seg { display:inline-flex; background:var(--bg-canvas-soft); padding:2px; border-radius:7px; border:1px solid var(--border-subtle); }
+  .rev-seg button { border:none; background:transparent; color:var(--text-muted); padding:3px 9px; font-size:11.5px; border-radius:5px; cursor:pointer; font-family:inherit; }
+  .rev-seg button.active { background:var(--bg-elevated); color:var(--accent-copper); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,0.06); }
+  .review-paper { transition:max-width 0.18s ease; }
+  .review-paper.is-split { max-width:min(1220px, 100%); padding:26px 30px; }
+  .rev-eq { white-space:pre-wrap; word-break:break-word; margin:0 0 0.7em; color:var(--text-primary); }
+  .rev-block { position:relative; margin:0.55em -10px; padding:6px 74px 6px 12px; border-radius:7px; border-left:2.5px solid rgba(217,119,6,0.55); background:rgba(217,119,6,0.035); white-space:pre-wrap; word-break:break-word; transition:background 0.16s ease, border-color 0.16s ease, box-shadow 0.16s ease; }
+  .rev-block.is-add { border-left-color:rgba(22,163,74,0.65); background:rgba(22,163,74,0.045); }
+  .rev-block.is-del { border-left-color:rgba(220,38,38,0.58); background:rgba(220,38,38,0.04); }
+  .rev-block.is-focused { box-shadow:0 0 0 2px var(--border-active, rgba(122,90,60,0.32)); }
+  .rev-block.is-resolved { border-left-color:transparent; background:transparent; padding-right:42px; }
+  .rev-block.is-resolved:hover { background:var(--bg-canvas-soft); }
+  .rev-actions { position:absolute; top:5px; right:6px; display:inline-flex; gap:3px; font-family:var(--font-sans); opacity:0.86; transition:opacity 0.14s ease; }
+  .rev-block:hover .rev-actions, .rev-block.is-focused .rev-actions { opacity:1; }
+  .rev-block.is-resolved .rev-actions { opacity:0; }
+  .rev-block.is-resolved:hover .rev-actions { opacity:0.9; }
+  .rev-icon-btn { width:26px; height:24px; border-radius:6px; border:1px solid var(--border-subtle); background:var(--bg-elevated); color:var(--text-secondary); cursor:pointer; display:grid; place-items:center; font-size:12px; line-height:1; padding:0; transition:all 0.12s ease; }
+  .rev-icon-btn.ok:hover { background:#16a34a; color:#fff; border-color:#16a34a; }
+  .rev-icon-btn.no:hover { background:#dc2626; color:#fff; border-color:#dc2626; }
+  .rev-icon-btn.undo:hover { border-color:var(--accent-copper); color:var(--accent-copper); }
+  .rev-del { background:rgba(220,38,38,0.12); color:#b91c1c; text-decoration:line-through; text-decoration-thickness:1.2px; padding:0 2px; border-radius:3px; }
+  .rev-ins { background:rgba(22,163,74,0.13); color:#15803d; text-decoration:underline; text-decoration-color:rgba(22,163,74,0.45); text-underline-offset:3px; padding:0 2px; border-radius:3px; }
+  .rev-split-head { display:grid; grid-template-columns:1fr 1fr; gap:20px; padding:0 0 8px; margin-bottom:12px; border-bottom:1px solid var(--border-subtle); font-family:var(--font-sans); font-size:11.5px; font-weight:700; color:var(--text-muted); }
+  .rev-split-row { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:0 0 0.7em; }
+  .rev-split-row.is-eq { color:var(--text-primary); opacity:0.86; }
+  .rev-split-row.is-eq > div { white-space:pre-wrap; word-break:break-word; }
+  .rev-split-row.is-change { position:relative; padding:7px 8px; margin:0.5em -8px; border-radius:8px; background:var(--bg-canvas-soft); }
+  .rev-split-row.is-change.is-resolved { background:transparent; }
+  .rev-split-row.is-change.is-focused { box-shadow:0 0 0 2px var(--border-active, rgba(122,90,60,0.32)); }
+  .rev-split-col { white-space:pre-wrap; word-break:break-word; min-width:0; }
+  .rev-split-col.right { position:relative; padding-right:66px; }
+  dialog.review-dialog { width:min(880px, 92vw); max-height:88vh; padding:18px 20px; }
+  dialog.review-dialog[open] { display:flex; flex-direction:column; gap:10px; }
+  .review-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
   </style>
 </head>
 <body>
@@ -510,6 +558,7 @@
         <button id="btnOpenDir" class="btn primary loki-button-primary">打开目录</button>
         <button id="btnRefresh" class="btn loki-button-secondary" disabled>刷新</button>
         <button id="btnCopyPack" class="btn loki-button-secondary" disabled>复制上下文</button>
+        <button id="btnToggleRightbar" class="btn loki-button-secondary" title="展开/收起右侧写作助手与全书概览">💬 助手</button>
         <button id="btnSkinDrawer" class="btn loki-button-secondary">🎨 皮肤 (49)</button>
       </div>
     </header>
@@ -566,6 +615,23 @@
           </div>
         </div>
         <div id="metaBar" class="meta-bar hidden"></div>
+        <div id="inlineReviewBar" class="inline-review-bar hidden">
+          <div class="inline-review-left">
+            <span id="inlineReviewStatus" class="rev-status-pill">修订中</span>
+            <button type="button" id="btnRevPrev" class="btn" style="padding:3px 8px;font-size:11.5px;" title="上一处改动">↑</button>
+            <button type="button" id="btnRevNext" class="btn" style="padding:3px 8px;font-size:11.5px;" title="下一处改动">↓</button>
+          </div>
+          <div class="inline-review-right">
+            <div class="rev-seg" id="inlineReviewTabs">
+              <button type="button" data-rev-view="paper" class="active">纸面修订</button>
+              <button type="button" data-rev-view="split">双栏对照</button>
+            </div>
+            <button type="button" id="btnRevAcceptAll" class="btn" style="padding:3px 9px;font-size:11.5px;">全部接受</button>
+            <button type="button" id="btnRevRejectAll" class="btn" style="padding:3px 9px;font-size:11.5px;">全部拒绝</button>
+            <button type="button" id="btnRevDiscard" class="btn" style="padding:3px 9px;font-size:11.5px;">放弃</button>
+            <button type="button" id="btnRevFinish" class="btn primary" style="padding:3px 11px;font-size:11.5px;">完成并保存</button>
+          </div>
+        </div>
         <div class="panes">
           <div id="paneEditor" class="pane-editor hidden">
             <div class="editor-shell loki-paper">
@@ -578,6 +644,9 @@
               <select id="splitRefSelect"></select>
             </div>
             <article id="previewProse" class="prose loki-paper"></article>
+          </div>
+          <div id="paneReview" class="pane-preview hidden">
+            <article id="reviewPaper" class="prose loki-paper review-paper"></article>
           </div>
         </div>
       </main>
@@ -751,12 +820,41 @@
     </div>
   </div>
 
-  <dialog id="generatedReview" style="width:min(850px,90vw);border-radius:14px;padding:22px;background:var(--bg-elevated);color:var(--text-primary)">
-    <h3 id="reviewTitle">生成预览</h3>
-    <textarea id="reviewText" readonly style="width:100%;height:55vh;line-height:1.8"></textarea>
-    <p>确认后写回当前作品；取消会保留这份预览。</p>
-    <button type="button" id="reviewCancel" class="btn">取消写回</button>
-    <button type="button" id="reviewApply" class="btn primary">确认写回</button>
+  <dialog id="generatedReview" class="loki-dialog review-dialog">
+    <div class="review-head">
+      <h3 id="reviewTitle">生成预览</h3>
+      <span id="reviewStats" class="review-stats"></span>
+    </div>
+    <div id="reviewToolbar" class="review-toolbar hidden">
+      <div class="review-tabs" id="reviewViewTabs">
+        <button type="button" class="btn active" data-review-view="track">📝 修订痕迹</button>
+        <button type="button" class="btn" data-review-view="split">📑 左右双栏对照</button>
+        <button type="button" class="btn" data-review-view="merged">📄 合并后全文</button>
+      </div>
+      <div class="review-actions">
+        <label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;cursor:pointer;"><input type="checkbox" id="reviewOnlyChanges" />仅看改动</label>
+        <button type="button" id="reviewAcceptAll" class="btn" style="padding:3px 9px;font-size:11.5px;">全部接受</button>
+        <button type="button" id="reviewRejectAll" class="btn" style="padding:3px 9px;font-size:11.5px;">全部拒绝</button>
+      </div>
+    </div>
+    <div id="reviewDiffPane" class="review-diff-pane hidden"></div>
+    <textarea id="reviewText" style="width:100%;height:55vh;line-height:1.8;font-family:var(--editor-font);font-size:14.5px;padding:12px;border:1px solid var(--border-subtle);border-radius:8px;background:var(--bg-paper,var(--bg-canvas));color:var(--text-primary);"></textarea>
+    <div class="review-foot">
+      <small id="reviewFootHint" style="color:var(--text-muted);">确认后写回当前作品（支持一键撤销）；取消会保留这份预览。</small>
+      <div style="display:flex;gap:8px;">
+        <button type="button" id="reviewCancel" class="btn">放弃修改</button>
+        <button type="button" id="reviewApply" class="btn primary">确认写回</button>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="unsavedDialog" class="loki-dialog" style="width:min(440px,92vw);">
+    <h3 style="margin:0 0 10px;font-size:16px;">未保存的改动</h3>
+    <p id="unsavedMessage" style="margin:0 0 18px;color:var(--text-secondary);line-height:1.6;"></p>
+    <div class="modal-actions" style="margin-top:0;">
+      <button type="button" id="unsavedCancel" class="btn loki-button-secondary">留在此页</button>
+      <button type="button" id="unsavedDiscard" class="btn loki-button-secondary" style="color:#dc2626;border-color:rgba(220,38,38,0.4);">放弃修改</button>
+      <button type="button" id="unsavedSave" class="btn primary loki-button-primary">保存并继续</button>
+    </div>
   </dialog>
   <div id="toast" class="toast"></div>
 
@@ -838,13 +936,104 @@
     const prefs = JSON.parse(localStorage.getItem("writer:prefs49") || "{}");
     const state = {
       rootHandle: null, recentDirs: [], books: [], assets: { styleCards: [], skills: [] }, currentBook: null, currentFile: null,
-      wsMode: prefs.wsMode || "studio", studioEditing: false, dirty: false, savedText: "",
+      wsMode: prefs.wsMode || "studio", studioEditing: false, dirty: false, saving: false, savedText: "",
       themeId: prefs.themeId || "loki-ease",
       skinFilter: "all", skinQuery: "",
       fontSize: prefs.fontSize || 16.5, lineHeight: prefs.lineHeight || 1.95,
       fontStyle: prefs.fontStyle || "serif", editorWidth: prefs.editorWidth || "760px",
       indentP: prefs.indentP !== false,
     };
+    let openFileSeq = 0, splitRefSeq = 0;
+    let isCreatingBook = false, isCreatingChapter = false;
+    let navHistoryLock = false, draftTimer = null;
+
+    function draftStorageKey(root, bookName, filePath) {
+      const wsId = root?.ws?.id || root?.name || "local";
+      return `writer:draft:${encodeURIComponent(wsId)}::${encodeURIComponent(bookName || "")}::${encodeURIComponent(filePath || "")}`;
+    }
+    function saveLocalDraft() {
+      if (!state.currentFile || !state.currentBook) return;
+      const key = draftStorageKey(state.rootHandle, state.currentBook.name, state.currentFile.path);
+      try {
+        if (!state.dirty) { localStorage.removeItem(key); return; }
+        localStorage.setItem(key, JSON.stringify({ text: $("editorArea").value, savedText: state.savedText, ts: Date.now() }));
+      } catch {}
+    }
+    function readLocalDraft(root, bookName, filePath) {
+      try {
+        const raw = localStorage.getItem(draftStorageKey(root, bookName, filePath));
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+    function clearLocalDraft(root, bookName, filePath) {
+      try { localStorage.removeItem(draftStorageKey(root, bookName, filePath)); } catch {}
+    }
+    function syncDirtyUI() {
+      $("dirtyDot").classList.toggle("show", state.dirty);
+      $("btnSave").disabled = !state.dirty || state.saving || !state.currentFile;
+      if ($("btnZenSave")) $("btnZenSave").disabled = !state.dirty || state.saving || !state.currentFile;
+      $("statusSaved").textContent = state.saving ? "保存中…" : (state.dirty ? "未保存" : "已同步");
+    }
+    function askUnsavedChoice(actionLabel = "继续操作") {
+      const dialog = $("unsavedDialog");
+      const title = state.currentFile?.name || "当前文档";
+      if (!dialog || typeof dialog.showModal !== "function") {
+        return Promise.resolve(confirm(`当前文档《${title}》有未保存的改动，确定放弃并${actionLabel}吗？`) ? "discard" : "cancel");
+      }
+      $("unsavedMessage").textContent = `《${title}》有未保存的改动，${actionLabel}前要如何处理？`;
+      return new Promise((resolve) => {
+        let done = false;
+        const finish = (choice) => {
+          if (done) return;
+          done = true;
+          dialog.onclose = null;
+          resolve(choice);
+        };
+        dialog.returnValue = "cancel";
+        $("unsavedSave").onclick = () => dialog.close("save");
+        $("unsavedDiscard").onclick = () => dialog.close("discard");
+        $("unsavedCancel").onclick = () => dialog.close("cancel");
+        dialog.onclose = () => finish(dialog.returnValue || "cancel");
+        dialog.showModal();
+      });
+    }
+    async function guardUnsaved(actionLabel = "切换文档") {
+      if (!state.dirty) return true;
+      if (state.saving) { toast("正在保存中，请稍候"); return false; }
+      const choice = await askUnsavedChoice(actionLabel);
+      if (choice === "save") {
+        return await saveCurrentFile({ skipRescan: true });
+      }
+      if (choice === "discard") {
+        clearLocalDraft(state.rootHandle, state.currentBook?.name, state.currentFile?.path);
+        $("editorArea").value = state.savedText;
+        state.dirty = false;
+        syncDirtyUI();
+        renderCurrentDoc(state.savedText);
+        return true;
+      }
+      return false;
+    }
+    function currentNavSnapshot(modal = null) {
+      return {
+        wsId: serviceMode ? (state.rootHandle?.ws?.id || "") : (state.rootHandle?.name || ""),
+        bookName: state.currentBook?.name || "",
+        filePath: state.currentFile?.path || "",
+        wsMode: state.wsMode,
+        studioEditing: state.studioEditing,
+        modal,
+      };
+    }
+    function pushNavHistory(modal = null, replace = false) {
+      if (navHistoryLock || typeof history === "undefined" || !history.pushState) return;
+      const snap = currentNavSnapshot(modal);
+      const prev = history.state;
+      if (!replace && prev && prev.wsId === snap.wsId && prev.bookName === snap.bookName && prev.filePath === snap.filePath && prev.wsMode === snap.wsMode && prev.modal === snap.modal) return;
+      try {
+        if (replace) history.replaceState(snap, "");
+        else history.pushState(snap, "");
+      } catch {}
+    }
 
     const $ = (id) => document.getElementById(id);
 
@@ -950,7 +1139,7 @@
       savePrefs();
     }
 
-    function applyWsMode(mode) {
+    function applyWsMode(mode, options = {}) {
       state.wsMode = mode;
       document.body.classList.remove("mode-studio", "mode-split", "mode-zen", "mode-typewriter", "mode-reader");
       document.body.classList.add("mode-" + mode);
@@ -958,11 +1147,19 @@
       $("statusMode").textContent = `模式：${MODE_NAMES[mode] || mode}`;
       $("zenModeLabel").textContent = mode === "typewriter" ? "⌨️ 打字机模式" : "🧘 禅意专注";
 
+      if (typeof inlineReviewSession !== "undefined" && inlineReviewSession) {
+        $("paneEditor").classList.add("hidden");
+        $("panePreview").classList.add("hidden");
+        $("paneReview").classList.remove("hidden");
+        savePrefs();
+        return;
+      }
       const showEditor = mode === "split" || mode === "zen" || mode === "typewriter" || (mode === "studio" && state.studioEditing);
       const showPreview = mode === "split" || mode === "reader" || (mode === "studio" && !state.studioEditing);
 
       $("paneEditor").classList.toggle("hidden", !showEditor);
       $("panePreview").classList.toggle("hidden", !showPreview);
+      if ($("paneReview")) $("paneReview").classList.add("hidden");
       $("splitRefBar").classList.toggle("hidden", mode !== "split");
       if (mode === "split") { populateSplitRefSelect(); renderSplitRefPane(); }
       else { renderCurrentDoc($("editorArea").value || state.savedText || ""); }
@@ -971,6 +1168,7 @@
         setTimeout(() => $("editorArea").focus(), 40);
       }
       savePrefs();
+      if (!options.fromHistory && state.currentFile) pushNavHistory(null, Boolean(options.replaceHistory));
     }
 
     /* Markdown & Obsidian helpers */
@@ -1105,10 +1303,10 @@
         }
       };
     }
-    async function loadShelf(preserve, openPath) {
+    async function loadShelf(preserve, openPath, options = {}) {
       const epoch = ++workspaceEpoch;
       const root = state.rootHandle;
-      const oldBook = preserve && state.currentBook?.name;
+      const oldBook = options.bookName ?? (preserve && state.currentBook?.name);
       const oldFile = openPath ?? (preserve && state.currentFile?.path);
       const data = await localAPI("/api/books?workspace=" + encodeURIComponent(root.ws.id));
       const books = data.books || [];
@@ -1137,30 +1335,34 @@
       $("workspace").classList.remove("hidden");
       $("btnRefresh").disabled = false;
       renderRecentDirs();
-      await renderBookSelect(oldBook || books.find(b => !b.isLooseBucket && (b.coreFiles.length || b.chapters.length))?.name,oldFile);
+      await renderBookSelect(oldBook || books.find(b => !b.isLooseBucket && (b.coreFiles.length || b.chapters.length))?.name, oldFile, { skipDirtyCheck: true, replaceHistory: !history.state, ...options });
     }
-    async function enterLocal(ws) {
-      if (state.dirty) return toast("请先保存当前文稿再切换目录");
+    async function enterLocal(ws, options = {}) {
+      if (!options.skipDirtyCheck && !(await guardUnsaved("切换目录"))) return false;
       state.rootHandle = remoteDir(ws);
-      await loadShelf(false);
+      await loadShelf(false, options.openPath ?? null, options);
+      return true;
     }
     async function updateLocalDirectories(action, value) {
-      if (state.dirty) return toast("请先保存当前文稿");
+      if (!(await guardUnsaved(action === "add" ? "添加并切换目录" : "移除目录"))) return false;
       try {
         const cfg = await localAPI("/api/workspaces", action === "add" ? {action,path:value} : {action,id:value});
         state.recentDirs = cfg.workspaces;
         const active = state.rootHandle?.ws?.id;
         const next = action === "add" ? cfg.workspaces.at(-1) : cfg.workspaces.find(w => w.id === active) || cfg.workspaces.find(w => w.id === cfg.default);
-        if (next) await enterLocal(next);
+        if (next) await enterLocal(next, { skipDirtyCheck: true });
         else {
           ++workspaceEpoch;
           state.rootHandle = state.currentBook = state.currentFile = null;
           state.books = [];
+          state.dirty = false;
+          syncDirtyUI();
           $("workspace").classList.add("hidden");
           $("emptyState").classList.remove("hidden");
           renderRecentDirs();
         }
-      } catch(e) { toast(e.message); }
+        return true;
+      } catch(e) { toast(e.message); return false; }
     }
     async function startShelf() {
       if (location.protocol === "file:") {
@@ -1204,14 +1406,37 @@
       return /(总纲|设定|圣经|大纲|细纲|人物小传|进度|证据链|一致性|全本)/.test(entryName);
     }
 
+    function extractBookTitle(text) {
+      const { meta } = parseFrontmatter(text || "");
+      if (meta.book && String(meta.book).trim()) return String(meta.book).trim().replace(/^["']|["']$/g, "").trim();
+      const m = String(text || "").match(/^-\s*\*\*书名\*\*[：:]\s*(.+?)\s*$/m);
+      return m ? m[1].trim().replace(/^[《"']|[》"']$/g, "").trim() : "";
+    }
+    function bookLabel(book) { return (book && (book.displayName || book.name)) || ""; }
+    function syncBookDisplayName(book, filePath, text) {
+      if (!book || book.isLooseBucket) return;
+      if (!["00-总纲与世界观.md", "00_设定集.md", "00_圣经.md", "00_设定与大纲.md"].includes(filePath)) return;
+      const nextName = extractBookTitle(text) || book.name;
+      if (book.displayName === nextName) return;
+      book.displayName = nextName;
+      const sel = $("bookSelect");
+      if (sel && sel.options) {
+        for (const opt of [...sel.options]) {
+          if (opt.value === book.name) opt.textContent = `📖 ${nextName}`;
+        }
+      }
+      if (state.currentBook === book && $("hintBookName")) $("hintBookName").textContent = nextName;
+    }
+
     async function scanBookDir(name, dirHandle) {
       const coreFiles = [], chapters = [];
-      let totalWords = 0, ledgerRaw = "", chapterDirName = "04-正文";
+      let totalWords = 0, ledgerRaw = "", displayName = "", chapterDirName = "04-正文";
       for await (const [entryName, handle] of dirHandle.entries()) {
         if (handle.kind === "file" && entryName.endsWith(".md") && entryName.toLowerCase() !== "readme.md") {
           const text = await readHandleText(handle);
           const w = countWords(text), cnW = countCnWords(text);
           if (entryName === "02-伏笔与时间线.md") ledgerRaw = text;
+          if (!displayName && ["00-总纲与世界观.md", "00_设定集.md", "00_圣经.md", "00_设定与大纲.md"].includes(entryName)) displayName = extractBookTitle(text);
           if (isCoreArchiveFile(entryName)) {
             coreFiles.push({ path: entryName, name: entryName.replace(/\.md$/, ""), handle, isChapter: false, words: w, cnWords: cnW });
           } else {
@@ -1237,7 +1462,7 @@
         return a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true });
       });
       chapters.sort((a, b) => a.name.localeCompare(b.name, "zh-Hans-CN", { numeric: true }));
-      return { name, dirHandle, chapterDirName, coreFiles, chapters, totalWords, openForeshadowing: parseForeshadowing(ledgerRaw) };
+      return { name, displayName: displayName || name, dirHandle, chapterDirName, coreFiles, chapters, totalWords, openForeshadowing: parseForeshadowing(ledgerRaw) };
     }
 
     async function scanWorkspace(preserve = true, openPath = null) {
@@ -1295,10 +1520,10 @@
       $("workspace").classList.remove("hidden");
       $("btnRefresh").disabled = false;
       renderRecentDirs();
-      await renderBookSelect(prevBook, openPath ?? prevFile);
+      await renderBookSelect(prevBook, openPath ?? prevFile, { skipDirtyCheck: true, replaceHistory: !history.state });
     }
 
-    function renderBookSelect(preferBook, preferFile) {
+    function renderBookSelect(preferBook, preferFile, options = {}) {
       const sel = $("bookSelect");
       sel.innerHTML = "";
       if (state.books.length === 0) {
@@ -1316,17 +1541,40 @@
       state.books.forEach((b) => {
         const opt = document.createElement("option");
         opt.value = b.name;
-        opt.textContent = `📖 ${b.name}`;
+        opt.textContent = `📖 ${bookLabel(b)}`;
         sel.appendChild(opt);
       });
       const target = state.books.find((b) => b.name === preferBook) || state.books[0];
       sel.value = target.name;
-      return selectBook(target.name, preferFile);
+      return selectBook(target.name, preferFile, options);
     }
 
-    async function selectBook(bookName, preferFile = null) {
+    async function selectBook(bookName, preferFile = null, options = {}) {
       const book = state.books.find((b) => b.name === bookName);
-      if (!book) return;
+      if (!book) return false;
+      const isBookSwitch = state.currentBook && state.currentBook.name !== book.name;
+      if (!options.skipDirtyCheck && state.dirty) {
+        const ok = await guardUnsaved(isBookSwitch ? "切换作品" : "切换文档");
+        if (!ok) {
+          if ($("bookSelect") && state.currentBook) $("bookSelect").value = state.currentBook.name;
+          return false;
+        }
+      }
+      const all = [...book.coreFiles, ...book.chapters];
+      const next = all.find((f) => f.path === preferFile) || all[0] || null;
+      const seq = ++openFileSeq;
+      const expectedRoot = state.rootHandle;
+      let nextText = "";
+      if (next) {
+        try {
+          nextText = await readHandleText(next.handle);
+        } catch (err) {
+          if ($("bookSelect") && state.currentBook) $("bookSelect").value = state.currentBook.name;
+          toast("读取文档失败：" + err.message);
+          return false;
+        }
+        if (seq !== openFileSeq || state.rootHandle !== expectedRoot) return false;
+      }
       if (chatRoot !== state.rootHandle || chatBook !== book.name) {
         chatRoot = state.rootHandle; chatBook = book.name;
         chatHistory = [];
@@ -1336,19 +1584,23 @@
         updateCliButtons();
       }
       state.currentBook = book;
+      if ($("bookSelect")) $("bookSelect").value = book.name;
       syncBookBindingUI();
       $("btnCopyPack").disabled = false; $("btnCopyPackSide").disabled = false;
-      renderNav(); updateRightPanel();
-      const all = [...book.coreFiles, ...book.chapters];
-      const next = all.find((f) => f.path === preferFile) || all[0] || null;
-      if (next) await openFile(next);
-      else if (serviceMode) {
+      if (next) {
+        commitOpenedFile(next, nextText, options);
+      } else {
         state.currentFile = null;
         state.savedText = $("editorArea").value = "";
+        state.dirty = false;
         $("docTitle").textContent = book.name;
-        $("btnSave").disabled = $("btnToggleEdit").disabled = true;
+        $("btnToggleEdit").disabled = true;
+        syncDirtyUI();
         renderCurrentDoc("");
+        renderNav(); updateRightPanel();
+        if (!options.fromHistory) pushNavHistory(null, Boolean(options.replaceHistory));
       }
+      return true;
     }
 
     function renderNav() {
@@ -1372,7 +1624,7 @@
       $("statChapters").textContent = book ? book.chapters.length : 0;
       $("statWords").textContent = book ? (book.totalWords >= 10000 ? (book.totalWords / 10000).toFixed(1) + "万" : book.totalWords) : 0;
       $("statOpenForeshadow").textContent = book ? book.openForeshadowing.length : 0;
-      $("hintBookName").textContent = book ? book.name : "书名";
+      $("hintBookName").textContent = book ? bookLabel(book) : "书名";
       $("hintNextCh").textContent = book ? book.chapters.length + 1 : 1;
 
       const listEl = $("foreshadowList");
@@ -1388,24 +1640,75 @@
       `).join("");
     }
 
-    async function openFile(fileItem) {
-      if (state.dirty && !confirm("当前文档有未保存的改动，确定切换吗？")) return;
+    function commitOpenedFile(fileItem, text, options = {}) {
       state.currentFile = fileItem;
-      const text = await readHandleText(fileItem.handle);
-      state.savedText = text; state.dirty = false;
-      lastAiBaseline = { filePath: fileItem.path, text, source: "打开时的原稿" };
+      state.savedText = text;
+      let displayText = text;
+      let restoredDirty = false;
+      if (!options.skipDraftRestore) {
+        const draft = readLocalDraft(state.rootHandle, state.currentBook?.name, fileItem.path);
+        if (draft && typeof draft.text === "string" && draft.text !== text) {
+          if (confirm(`检测到《${fileItem.name}》有上次未保存的本地草稿，是否恢复？`)) {
+            displayText = draft.text;
+            restoredDirty = true;
+            toast("已恢复本地未保存草稿，请记得保存");
+          } else {
+            clearLocalDraft(state.rootHandle, state.currentBook?.name, fileItem.path);
+          }
+        }
+      }
+      fileItem.words = countWords(displayText);
+      fileItem.cnWords = countCnWords(displayText);
+      if (state.currentBook && fileItem.isChapter) {
+        state.currentBook.totalWords = state.currentBook.chapters.reduce((n, c) => n + (c.words || 0), 0);
+      }
+      state.dirty = restoredDirty;
+      lastAiBaseline = { filePath: fileItem.path, text: displayText, source: restoredDirty ? "恢复的本地草稿" : "打开时的原稿" };
       $("docTitle").textContent = fileItem.name;
-      $("editorArea").value = text;
-      $("dirtyDot").classList.remove("show");
-      $("btnSave").disabled = true; $("btnToggleEdit").disabled = false;
-      $("statusSaved").textContent = "已同步";
-      renderCurrentDoc(text); renderNav(); applyWsMode(state.wsMode);
+      $("editorArea").value = displayText;
+      $("btnToggleEdit").disabled = false;
+      syncDirtyUI();
+      renderCurrentDoc(displayText); renderNav(); updateRightPanel(); applyWsMode(state.wsMode, { fromHistory: true });
+      if (!options.fromHistory) pushNavHistory(null, Boolean(options.replaceHistory));
+    }
+    async function openFile(fileItem, options = {}) {
+      if (!fileItem) return false;
+      if (!options.skipDirtyCheck && state.currentFile?.path !== fileItem.path) {
+        if (!(await guardUnsaved("切换文档"))) return false;
+      }
+      const seq = ++openFileSeq;
+      const expectedRoot = state.rootHandle;
+      const expectedBook = state.currentBook?.name;
+      let text;
+      try {
+        text = await readHandleText(fileItem.handle);
+      } catch (err) {
+        toast("读取文档失败：" + err.message);
+        return false;
+      }
+      if (seq !== openFileSeq || state.rootHandle !== expectedRoot || state.currentBook?.name !== expectedBook) return false;
+      commitOpenedFile(fileItem, text, options);
+      return true;
     }
 
     function renderCurrentDoc(text) {
       const { meta } = parseFrontmatter(text);
       const words = countWords(text);
       const mins = Math.max(1, Math.round(words / 450));
+      if (state.currentFile) {
+        state.currentFile.words = words;
+        state.currentFile.cnWords = countCnWords(text);
+        const activeMeta = typeof document !== "undefined" && document.querySelector ? document.querySelector(".nav-btn.loki-nav-item-active .nav-meta") : null;
+        if (activeMeta) activeMeta.textContent = `${words}字`;
+        if (state.currentBook && state.currentFile.isChapter) {
+          state.currentBook.totalWords = state.currentBook.chapters.reduce((n, c) => n + (c.words || 0), 0);
+          const statEl = $("statWords");
+          if (statEl) {
+            const tw = state.currentBook.totalWords;
+            statEl.textContent = tw >= 10000 ? (tw / 10000).toFixed(1) + "万" : tw;
+          }
+        }
+      }
       $("statusWords").textContent = `${words} 字 · 约 ${mins} 分钟阅读`;
       $("zenWords").textContent = `${words} 字`;
 
@@ -1481,7 +1784,7 @@
               "上章收尾：概括核心事件与结尾，不超过140字",
               "下一步：下一章可承接的剧情方向，不超过90字",
               `最新章节：${latest.name}\n${parseFrontmatter(texts.at(-1)).body.slice(-5000)}`
-            ].join("\n\n"));
+            ].join("\n\n"), { stream: false });
             const tail = data.text.match(/^上章收尾[：:]\s*(.+)$/m), next = data.text.match(/^下一步[：:]\s*(.+)$/m);
             if (tail && next) { setLine("上章收尾", tail[1].trim()); setLine("下一步", next[1].trim()); summaryUpdated = true; }
             else reportProgressIssue("正文已保存，摘要格式不完整；仅同步统计");
@@ -1501,18 +1804,42 @@
       }
     }
 
-    async function saveCurrentFile() {
-      if (!state.currentFile) return;
+    async function saveCurrentFile(options = {}) {
+      if (!state.currentFile || state.saving) return false;
       const file = state.currentFile, book = state.currentBook;
       const text = $("editorArea").value;
-      try { await writeHandleText(file.handle, text, state.savedText); }
-      catch (error) { toast("保存失败：" + error.message); return; }
-      state.savedText = text; state.dirty = false;
-      $("dirtyDot").classList.remove("show"); $("btnSave").disabled = true;
-      $("statusSaved").textContent = "已保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      toast("已写回本地文件");
-      if (file.isChapter) await syncBookProgress(book);
-      await scanWorkspace(true);
+      state.saving = true;
+      syncDirtyUI();
+      try {
+        await writeHandleText(file.handle, text, state.savedText);
+      } catch (error) {
+        state.saving = false;
+        syncDirtyUI();
+        toast("保存失败：" + error.message);
+        return false;
+      }
+      state.saving = false;
+      state.savedText = text;
+      const stillDirty = $("editorArea").value !== state.savedText;
+      state.dirty = stillDirty;
+      if (!stillDirty) clearLocalDraft(state.rootHandle, book?.name, file.path);
+      syncDirtyUI();
+      if (!stillDirty) {
+        const stamp = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+        $("statusSaved").textContent = (options.silent ? "已自动保存 " : "已保存 ") + stamp;
+      }
+      file.words = countWords(text);
+      file.cnWords = countCnWords(text);
+      if (book) {
+        book.totalWords = book.chapters.reduce((n, c) => n + (c.words || 0), 0);
+        if (file.path === "02-伏笔与时间线.md") book.openForeshadowing = parseForeshadowing(text);
+        if (typeof syncBookDisplayName === "function") syncBookDisplayName(book, file.path, text);
+      }
+      renderNav();
+      updateRightPanel();
+      if (!options.silent) toast("已写回本地文件");
+      if (file.isChapter && !options.skipProgress) await syncBookProgress(book);
+      return true;
     }
 
     let splitRefPath = "__live__";
@@ -1533,6 +1860,7 @@
     async function renderSplitRefPane() {
       if (state.wsMode !== "split") return;
       const prose = $("previewProse");
+      const seq = ++splitRefSeq;
       if (splitRefPath === "__live__" || !state.currentBook) {
         prose.classList.toggle("indent-p", state.indentP && state.currentFile?.isChapter);
         prose.innerHTML = renderMarkdown($("editorArea").value || state.savedText || "");
@@ -1543,9 +1871,12 @@
       if (!target) { prose.innerHTML = '<p style="color:var(--text-muted)">请选择右栏要对照的设定或旧章节</p>'; return; }
       try {
         const text = await readHandleText(target.handle);
+        if (seq !== splitRefSeq || state.wsMode !== "split") return;
         prose.classList.toggle("indent-p", state.indentP && target.isChapter);
         prose.innerHTML = renderMarkdown(text);
-      } catch (e) { prose.innerHTML = '<p style="color:var(--text-muted)">读取对照文档失败</p>'; }
+      } catch (e) {
+        if (seq === splitRefSeq) prose.innerHTML = '<p style="color:var(--text-muted)">读取对照文档失败</p>';
+      }
     }
     $("splitRefSelect").onchange = (e) => { splitRefPath = e.target.value; renderSplitRefPane(); };
 
@@ -1776,11 +2107,14 @@
     async function readBoundAssetsSections(book) {
       const b = getBookBinding(book?.name);
       const sections = [];
+      const STYLE_CARD_LIMIT = 120000, SKILL_LIMIT = 60000;
       if (b.styleCard) {
         const card = state.assets.styleCards.find(c => c.path === b.styleCard);
         if (card?.handle) {
           try {
-            const txt = (await readHandleText(card.handle)).trim().slice(0, 28000);
+            const raw = (await readHandleText(card.handle)).trim();
+            if (raw.length > STYLE_CARD_LIMIT) toast(`风格卡「${card.name}」超过 ${STYLE_CARD_LIMIT} 字，已截取前 ${STYLE_CARD_LIMIT} 字`);
+            const txt = raw.slice(0, STYLE_CARD_LIMIT);
             if (txt) sections.push(`## 已绑定写作风格卡（${card.name}）\n请严格模仿以下风格卡的语感、节奏、叙事颗粒度与禁区：\n\n${txt}`);
           } catch {}
         }
@@ -1789,7 +2123,9 @@
         const sk = state.assets.skills.find(s => s.path === sp);
         if (sk?.handle) {
           try {
-            const txt = (await readHandleText(sk.handle)).trim().slice(0, 16000);
+            const raw = (await readHandleText(sk.handle)).trim();
+            if (raw.length > SKILL_LIMIT) toast(`Skill「${sk.name}」超过 ${SKILL_LIMIT} 字，已截取前 ${SKILL_LIMIT} 字`);
+            const txt = raw.slice(0, SKILL_LIMIT);
             if (txt) sections.push(`## 已启用写作方法论 / Skill（${sk.name}）\n${txt}`);
           } catch {}
         }
@@ -1833,6 +2169,8 @@
         const exists = chapters.some(c => chapterNumber(c.name) === reqNum);
         if (!exists && !/(改|润色|精修|删|去掉|重写|调整|替换)/i.test(s)) return "new_chapter";
       }
+      const isArchive = Boolean(state.currentFile && (state.currentFile.isChapter === false || (typeof archiveName !== "undefined" && archiveName.test(state.currentFile.name || ""))));
+      if (isArchive) return "edit_current";
       if (/(继续往后写|往后写|往后续写|接着写|往下写|续写|接下去写|继续写下去)/i.test(s)) return "continue";
       if (/(当前基础|基础上|改|润色|精修|删|去掉|重写|调整|替换|太\s*ai|口吻|对话|节奏|第\s*\d+\s*段)/i.test(s)) return "edit_current";
       const curWords = countWords($("editorArea").value || "");
@@ -2040,42 +2378,456 @@
       $("cliSendBtn").disabled = writing || noEng;
       $("cliStopBtn").classList.toggle("hidden", !writing);
     }
+    let stopGraceTimer = null;
     $("cliStopBtn").onclick = () => {
+      if (inlineReviewSession) return;
       stopRequested = true;
       if ($("generatedReview").open) $("generatedReview").close("cancel");
-      if (activeAbort) { activeAbort.abort(); activeAbort = null; toast("已停止接收与写回；客户端可能仍在生成"); }
+      if (location.protocol !== "file:") {
+        fetch(bridge + "/api/generate/cancel", { method: "POST" }).catch(() => {});
+      }
+      toast("正在停止生成并保留已输出内容…");
+      clearTimeout(stopGraceTimer);
+      stopGraceTimer = setTimeout(() => {
+        if (activeAbort) { activeAbort.abort(); activeAbort = null; }
+      }, 2500);
     };
-    function reviewGenerated(text, label) {
-      const dialog = $("generatedReview");
-      $("reviewTitle").textContent = label + " · 生成预览";
-      $("reviewText").value = text;
-      chatHistory.push({role:"ai", text:"生成预览（尚未写回）：\n" + text});
-      renderChatLog();
+    let lastGenerateWarning = "";
+    function computeDiffSegments(oldText, newText) {
+      const a = String(oldText || "").replace(/\r\n/g, "\n").split("\n");
+      const b = String(newText || "").replace(/\r\n/g, "\n").split("\n");
+      let ops = [];
+      if (a.length * b.length <= 360000) {
+        const m = a.length, n = b.length;
+        const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+        for (let i = m - 1; i >= 0; i--) {
+          for (let j = n - 1; j >= 0; j--) {
+            dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+          }
+        }
+        let i = 0, j = 0;
+        while (i < m && j < n) {
+          if (a[i] === b[j]) { ops.push({ type: "eq", line: a[i] }); i++; j++; }
+          else if (dp[i + 1][j] >= dp[i][j + 1]) { ops.push({ type: "del", line: a[i] }); i++; }
+          else { ops.push({ type: "add", line: b[j] }); j++; }
+        }
+        while (i < m) ops.push({ type: "del", line: a[i++] });
+        while (j < n) ops.push({ type: "add", line: b[j++] });
+      } else {
+        let start = 0;
+        while (start < a.length && start < b.length && a[start] === b[start]) start++;
+        let endA = a.length - 1, endB = b.length - 1;
+        while (endA >= start && endB >= start && a[endA] === b[endB]) { endA--; endB--; }
+        for (let i = 0; i < start; i++) ops.push({ type: "eq", line: a[i] });
+        for (let i = start; i <= endA; i++) ops.push({ type: "del", line: a[i] });
+        for (let j = start; j <= endB; j++) ops.push({ type: "add", line: b[j] });
+        for (let i = endA + 1; i < a.length; i++) ops.push({ type: "eq", line: a[i] });
+      }
+      const segments = [];
+      let hunkId = 0, idx = 0;
+      while (idx < ops.length) {
+        if (ops[idx].type === "eq") {
+          const lines = [];
+          while (idx < ops.length && ops[idx].type === "eq") lines.push(ops[idx++].line);
+          segments.push({ type: "equal", lines });
+        } else {
+          const oldLines = [], newLines = [];
+          while (idx < ops.length && ops[idx].type !== "eq") {
+            if (ops[idx].type === "del") oldLines.push(ops[idx].line);
+            else newLines.push(ops[idx].line);
+            idx++;
+          }
+          const kind = !oldLines.length ? "add" : (!newLines.length ? "del" : "mod");
+          segments.push({ type: "change", id: hunkId++, kind, oldLines, newLines, accepted: true });
+        }
+      }
+      return segments;
+    }
+    function renderInlineCharDiff(oldStr, newStr) {
+      const tok = (s) => s.match(/[A-Za-z0-9_]+|[\s]+|./g) || [];
+      const a = tok(oldStr), b = tok(newStr);
+      let p = 0;
+      while (p < a.length && p < b.length && a[p] === b[p]) p++;
+      let sA = a.length - 1, sB = b.length - 1;
+      while (sA >= p && sB >= p && a[sA] === b[sB]) { sA--; sB--; }
+      const prefix = escapeHtml(a.slice(0, p).join(""));
+      const suffix = escapeHtml(a.slice(sA + 1).join(""));
+      const midA = a.slice(p, sA + 1), midB = b.slice(p, sB + 1);
+      if (midA.length * midB.length > 90000) {
+        return `${prefix}${midA.length ? `<del class="diff-del">${escapeHtml(midA.join(""))}</del>` : ""}${midB.length ? `<ins class="diff-ins">${escapeHtml(midB.join(""))}</ins>` : ""}${suffix}`;
+      }
+      const m = midA.length, n = midB.length;
+      const dp = Array.from({ length: m + 1 }, () => new Int32Array(n + 1));
+      for (let i = m - 1; i >= 0; i--) {
+        for (let j = n - 1; j >= 0; j--) {
+          dp[i][j] = midA[i] === midB[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+        }
+      }
+      let html = prefix, i = 0, j = 0, delBuf = "", insBuf = "";
+      const flush = () => {
+        if (delBuf) { html += `<del class="diff-del">${escapeHtml(delBuf)}</del>`; delBuf = ""; }
+        if (insBuf) { html += `<ins class="diff-ins">${escapeHtml(insBuf)}</ins>`; insBuf = ""; }
+      };
+      while (i < m && j < n) {
+        if (midA[i] === midB[j]) { flush(); html += escapeHtml(midA[i]); i++; j++; }
+        else if (dp[i + 1][j] >= dp[i][j + 1]) { delBuf += midA[i++]; }
+        else { insBuf += midB[j++]; }
+      }
+      while (i < m) delBuf += midA[i++];
+      while (j < n) insBuf += midB[j++];
+      flush();
+      return html + suffix;
+    }
+    function composeDiffSegments(segments) {
+      const out = [];
+      for (const seg of segments) {
+        if (seg.type === "equal") out.push(...seg.lines);
+        else out.push(...(seg.accepted ? seg.newLines : seg.oldLines));
+      }
+      return out.join("\n");
+    }
+    function applyEditPatches(originalText, aiOutput) {
+      const raw = String(aiOutput || "").replace(/\r\n/g, "\n");
+      const re = /<<<<<<<[^\n]*\n([\s\S]*?)\n=======\n([\s\S]*?)>>>>>>>[^\n]*/g;
+      const patches = [];
+      let m;
+      while ((m = re.exec(raw)) !== null) {
+        const search = m[1];
+        let replace = m[2];
+        if (replace.endsWith("\n")) replace = replace.slice(0, -1);
+        patches.push({ search, replace });
+      }
+      if (!patches.length) {
+        return { isPatch: false, text: stripCodeFence(aiOutput), applied: 0, failed: 0, total: 0 };
+      }
+      let result = String(originalText || "").replace(/\r\n/g, "\n");
+      let applied = 0, failed = 0;
+      for (const p of patches) {
+        if (!p.search) { failed++; continue; }
+        let idx = result.indexOf(p.search);
+        let matchLen = p.search.length;
+        if (idx === -1 && p.search.trim()) {
+          const trimmed = p.search.trim();
+          idx = result.indexOf(trimmed);
+          matchLen = trimmed.length;
+        }
+        if (idx !== -1) {
+          result = result.slice(0, idx) + p.replace + result.slice(idx + matchLen);
+          applied++;
+        } else {
+          failed++;
+        }
+      }
+      return { isPatch: true, text: result, applied, failed, total: patches.length };
+    }
+    let inlineReviewSession = null;
+    function reviewGenerated(text, label, options = {}) {
+      const warn = lastGenerateWarning;
+      lastGenerateWarning = "";
+      const hasDiff = typeof options.originalText === "string";
+      if (!hasDiff) {
+        const dialog = $("generatedReview");
+        const prefix = warn ? `⚠️ ${warn}\n以下是已保留的生成内容（尚未写回）：\n` : "生成预览（尚未写回）：\n";
+        chatHistory.push({role:"ai", text: prefix + text});
+        renderChatLog();
+        $("reviewTitle").textContent = warn ? `${label} · ⚠️ 部分生成预览（${countWords(text)} 字）` : `${label} · 生成预览`;
+        $("reviewStats").textContent = `共 ${countWords(text)} 字`;
+        $("reviewToolbar").classList.add("hidden");
+        $("reviewDiffPane").classList.add("hidden");
+        $("reviewText").classList.remove("hidden");
+        $("reviewText").readOnly = true;
+        $("reviewText").value = text;
+        $("reviewApply").textContent = "确认写回";
+        return new Promise((resolve, reject) => {
+          dialog.returnValue = "cancel";
+          $("reviewCancel").onclick = () => dialog.close("cancel");
+          $("reviewApply").onclick = () => dialog.close("apply");
+          dialog.onclose = () => dialog.returnValue === "apply" ? resolve(text) : reject(Error("已取消写回，结果保留在对话中"));
+          dialog.showModal();
+        });
+      }
+      const segments = computeDiffSegments(options.originalText, text);
+      const hunks = segments.filter(s => s.type === "change");
+      hunks.forEach(h => { h.status = "pending"; h.accepted = true; });
+      if (!hunks.length) {
+        toast("生成内容与原稿完全一致，没有改动");
+        return Promise.resolve(options.originalText);
+      }
+      if (warn) { chatHistory.push({ role: "ai", text: `⚠️ ${warn}` }); renderChatLog(); }
+      let viewMode = "paper";
+      let focusedIdx = 0;
+      const bar = $("inlineReviewBar");
+      const pane = $("paneReview");
+      const paper = $("reviewPaper");
+      const renderInlineMark = (oldStr, newStr, kind) => {
+        if (kind === "add") return `<ins class="rev-ins">${escapeHtml(newStr)}</ins>`;
+        if (kind === "del") return `<del class="rev-del">${escapeHtml(oldStr)}</del>`;
+        return renderInlineCharDiff(oldStr, newStr)
+          .replace(/class="diff-del"/g, 'class="rev-del"')
+          .replace(/class="diff-ins"/g, 'class="rev-ins"');
+      };
+      const actionButtonsHtml = (h) => h.status === "pending"
+        ? `<span class="rev-actions"><button type="button" class="rev-icon-btn ok" data-rev-act="accept" data-hunk-id="${h.id}" title="接受此修改">✓</button><button type="button" class="rev-icon-btn no" data-rev-act="reject" data-hunk-id="${h.id}" title="拒绝（保留原稿）">✕</button></span>`
+        : `<span class="rev-actions"><button type="button" class="rev-icon-btn undo" data-rev-act="reset" data-hunk-id="${h.id}" title="重新审阅此修改">↩</button></span>`;
+      function scrollToHunk(idx) {
+        if (!hunks.length) return;
+        focusedIdx = (idx + hunks.length) % hunks.length;
+        const h = hunks[focusedIdx];
+        paper.querySelectorAll("[data-hunk-node]").forEach(el => el.classList.toggle("is-focused", Number(el.dataset.hunkNode) === h.id));
+        const el = paper.querySelector(`[data-hunk-node="${h.id}"]`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      function renderInlinePaper() {
+        const pendingCnt = hunks.filter(h => h.status === "pending").length;
+        const appliedCnt = hunks.filter(h => h.status !== "rejected").length;
+        $("inlineReviewStatus").textContent = pendingCnt
+          ? `修订中 · 共 ${hunks.length} 处（待确认 ${pendingCnt} 处）`
+          : `修订完成 · 将应用 ${appliedCnt}/${hunks.length} 处`;
+        $("btnRevFinish").textContent = appliedCnt ? `完成并保存（${appliedCnt} 处）` : "保留原稿并退出";
+        document.querySelectorAll("#inlineReviewTabs button").forEach(b => b.classList.toggle("active", b.dataset.revView === viewMode));
+        paper.classList.toggle("is-split", viewMode === "split");
+        paper.classList.toggle("indent-p", state.indentP && state.currentFile?.isChapter && viewMode === "paper");
+        if (viewMode === "split") {
+          paper.innerHTML = '<div class="rev-split-head"><span>原稿</span><span>修订后</span></div>' + segments.map(seg => {
+            if (seg.type === "equal") {
+              const txt = seg.lines.join("\n");
+              if (!txt.trim()) return "";
+              return `<div class="rev-split-row is-eq"><div>${escapeHtml(txt)}</div><div>${escapeHtml(txt)}</div></div>`;
+            }
+            const oldStr = seg.oldLines.join("\n"), newStr = seg.newLines.join("\n");
+            const resolved = seg.status !== "pending";
+            const focusCls = hunks[focusedIdx]?.id === seg.id ? " is-focused" : "";
+            const leftHtml = oldStr
+              ? (resolved ? escapeHtml(oldStr) : `<span class="rev-del" style="text-decoration:none;">${escapeHtml(oldStr)}</span>`)
+              : '<span style="color:var(--text-muted);">（无）</span>';
+            const rightText = seg.status === "rejected" ? oldStr : newStr;
+            const rightHtml = resolved
+              ? (rightText ? escapeHtml(rightText) : '<span style="color:var(--text-muted);">（已删除）</span>')
+              : (newStr ? `<span class="rev-ins" style="text-decoration:none;">${escapeHtml(newStr)}</span>` : '<span style="color:var(--text-muted);">（已删除）</span>');
+            return `<div class="rev-split-row is-change${resolved ? " is-resolved" : ""}${focusCls}" data-hunk-node="${seg.id}"><div class="rev-split-col">${leftHtml}</div><div class="rev-split-col right">${rightHtml}${actionButtonsHtml(seg)}</div></div>`;
+          }).join("");
+        } else {
+          paper.innerHTML = segments.map(seg => {
+            if (seg.type === "equal") {
+              const txt = seg.lines.join("\n");
+              if (!txt.trim()) return "";
+              return `<div class="rev-eq">${escapeHtml(txt)}</div>`;
+            }
+            const oldStr = seg.oldLines.join("\n"), newStr = seg.newLines.join("\n");
+            const resolved = seg.status !== "pending";
+            const focusCls = hunks[focusedIdx]?.id === seg.id ? " is-focused" : "";
+            let bodyHtml = "";
+            if (seg.status === "accepted") bodyHtml = newStr ? escapeHtml(newStr) : '<span style="color:var(--text-muted);font-size:12px;">（已删除此段）</span>';
+            else if (seg.status === "rejected") bodyHtml = oldStr ? escapeHtml(oldStr) : '<span style="color:var(--text-muted);font-size:12px;">（已拒绝新增）</span>';
+            else bodyHtml = renderInlineMark(oldStr, newStr, seg.kind);
+            return `<div class="rev-block is-${seg.kind}${resolved ? " is-resolved" : ""}${focusCls}" data-hunk-node="${seg.id}">${bodyHtml}${actionButtonsHtml(seg)}</div>`;
+          }).join("");
+        }
+        paper.querySelectorAll("[data-rev-act]").forEach(btn => {
+          btn.onclick = () => {
+            const target = hunks.find(h => h.id === Number(btn.dataset.hunkId));
+            if (!target) return;
+            const act = btn.dataset.revAct;
+            if (act === "accept") { target.status = "accepted"; target.accepted = true; }
+            else if (act === "reject") { target.status = "rejected"; target.accepted = false; }
+            else { target.status = "pending"; target.accepted = true; }
+            renderInlinePaper();
+          };
+        });
+      }
+      bar.classList.remove("hidden");
+      $("paneEditor").classList.add("hidden");
+      $("panePreview").classList.add("hidden");
+      pane.classList.remove("hidden");
+      $("cliStopBtn").classList.add("hidden");
+      $("cliMessage").textContent = "生成已完成，请在稿纸上确认后点「完成并保存」";
       return new Promise((resolve, reject) => {
-        dialog.returnValue = "cancel";
-        $("reviewCancel").onclick = () => dialog.close("cancel");
-        $("reviewApply").onclick = () => dialog.close("apply");
-        dialog.onclose = () => dialog.returnValue === "apply" ? resolve() : reject(Error("已取消写回，结果保留在对话中"));
-        dialog.showModal();
+        const cleanup = () => {
+          inlineReviewSession = null;
+          bar.classList.add("hidden");
+          pane.classList.add("hidden");
+          applyWsMode(state.wsMode, { fromHistory: true });
+        };
+        const finish = () => {
+          hunks.forEach(h => { h.accepted = h.status !== "rejected"; });
+          const finalText = composeDiffSegments(segments);
+          cleanup();
+          resolve(finalText);
+        };
+        const cancel = () => {
+          cleanup();
+          chatHistory.push({ role: "ai", text: "已保留本次生成内容（未写回原稿，可复制）：\n\n" + text });
+          renderChatLog();
+          reject(Error("已放弃修改，原稿未改动（生成内容已保留在对话中）"));
+        };
+        inlineReviewSession = { cancel, finish };
+        document.querySelectorAll("#inlineReviewTabs button").forEach(b => {
+          b.onclick = () => { viewMode = b.dataset.revView; renderInlinePaper(); scrollToHunk(focusedIdx); };
+        });
+        $("btnRevPrev").onclick = () => scrollToHunk(focusedIdx - 1);
+        $("btnRevNext").onclick = () => scrollToHunk(focusedIdx + 1);
+        $("btnRevAcceptAll").onclick = () => { hunks.forEach(h => { h.status = "accepted"; h.accepted = true; }); renderInlinePaper(); toast("已全部接受，请点右上角「完成并保存」写回文件"); };
+        $("btnRevRejectAll").onclick = () => { hunks.forEach(h => { h.status = "rejected"; h.accepted = false; }); renderInlinePaper(); };
+        $("btnRevDiscard").onclick = cancel;
+        $("btnRevFinish").onclick = finish;
+        renderInlinePaper();
+        setTimeout(() => scrollToHunk(0), 40);
       });
     }
-    async function callLocalGenerate(promptText) {
+    function formatElapsed(ms) {
+      const sec = Math.max(0, Math.floor((ms || 0) / 1000));
+      return `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
+    }
+    function createLiveStreamBubble(promptChars, engineLabel, compactOnly = false) {
+      const box = $("cliChatLog");
+      if (!box) return null;
+      const el = document.createElement("div");
+      el.className = "cli-bubble ai";
+      const head = document.createElement("div");
+      head.className = "cli-mode-tag";
+      const body = document.createElement("div");
+      body.className = "cli-bubble-text";
+      body.style.color = "var(--text-muted)";
+      body.textContent = compactOnly ? "正在思考，首字出现后将直接实时写入左侧主文档…" : "正在思考并生成修改，完成后将在左侧稿纸展示修订痕迹…";
+      el.appendChild(head); el.appendChild(body);
+      box.appendChild(el);
+      const ctxInfo = promptChars >= 10000 ? `${(promptChars / 10000).toFixed(1)}万字` : `${promptChars}字`;
+      const updateHead = (elapsedMs, outChars) => {
+        head.textContent = `✍️ ${engineLabel} · 上下文约 ${ctxInfo} · ${formatElapsed(elapsedMs)}${outChars ? ` · 已输出 ${outChars} 字` : ""}`;
+      };
+      updateHead(0, 0);
+      box.scrollTop = box.scrollHeight;
+      return {
+        update(text, elapsedMs) {
+          updateHead(elapsedMs, text.length);
+          if (text) {
+            body.textContent = compactOnly
+              ? `已实时写入左侧主文档（当前 ${text.length} 字）…`
+              : `正在生成修改内容（已收到 ${text.length} 字），完成后自动在左侧稿纸展示…`;
+          }
+          box.scrollTop = box.scrollHeight;
+        },
+        remove() { el.remove(); }
+      };
+    }
+    async function callLocalGenerate(promptText, { stream = true, onDelta = null } = {}) {
       if (stopRequested) throw new DOMException("已停止", "AbortError");
       if (location.protocol === "file:") throw Error("台内生成请先运行 server.py 并打开本机工作台");
+      const engine = $("cliEngine").value;
       const model = currentSelectedModel();
+      const payload = JSON.stringify({ engine, model, prompt: promptText, fileCode });
+      lastGenerateWarning = "";
       activeAbort = new AbortController();
-      const reply = await fetch(bridge + "/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engine: $("cliEngine").value, model, prompt: promptText, fileCode }),
-        signal: activeAbort.signal
-      });
-      const data = await reply.json();
-      if (!data.ok) {
-        if (reply.status === 403) fileCode = "";
-        throw Error(data.error);
+      const startedAt = Date.now();
+      const useStream = stream && typeof TextDecoder !== "undefined";
+      let liveBubble = null;
+      let tickTimer = null;
+      let streamedText = "";
+      try {
+        if (useStream) {
+          const reply = await fetch(bridge + "/api/generate/stream", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            signal: activeAbort.signal
+          });
+          if (reply.status !== 404) {
+            const ctype = reply.headers.get("Content-Type") || "";
+            if (!reply.ok || !ctype.includes("text/event-stream") || !reply.body) {
+              let errMsg = `HTTP ${reply.status}`;
+              try { const errData = await reply.json(); errMsg = errData.error || errMsg; } catch {}
+              if (reply.status === 403) fileCode = "";
+              throw Error(errMsg);
+            }
+            liveBubble = createLiveStreamBubble(promptText.length, model || engine, Boolean(onDelta));
+            tickTimer = setInterval(() => {
+              const elapsed = Date.now() - startedAt;
+              liveBubble?.update(streamedText, elapsed);
+              $("cliMessage").textContent = `生成中 ${formatElapsed(elapsed)}${streamedText ? ` · 已输出 ${streamedText.length} 字` : ""}`;
+            }, 1000);
+            const reader = reply.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "", finalResult = null, streamError = null;
+            const processFrame = (frame) => {
+              let ev = "message", dataLines = [];
+              for (const line of frame.split(/\r?\n/)) {
+                if (line.startsWith("event:")) ev = line.slice(6).trim();
+                else if (line.startsWith("data:")) dataLines.push(line.slice(5).trim());
+              }
+              if (!dataLines.length) return;
+              let parsed;
+              try { parsed = JSON.parse(dataLines.join("\n")); } catch { return; }
+              if (ev === "delta" && typeof parsed.text === "string") {
+                streamedText += parsed.text;
+                liveBubble?.update(streamedText, parsed.elapsedMs ?? (Date.now() - startedAt));
+                if (onDelta) { try { onDelta(parsed.text, streamedText); } catch {} }
+              } else if (ev === "status") {
+                liveBubble?.update(streamedText, parsed.elapsedMs ?? (Date.now() - startedAt));
+              } else if (ev === "done") {
+                finalResult = parsed;
+              } else if (ev === "error") {
+                streamError = parsed.error || "生成失败";
+              }
+            };
+            while (true) {
+              const { value, done } = await reader.read();
+              if (value) {
+                buffer += decoder.decode(value, { stream: true });
+                const frames = buffer.split(/\r?\n\r?\n/);
+                buffer = frames.pop() || "";
+                frames.forEach(processFrame);
+              }
+              if (done) break;
+            }
+            if (buffer.trim()) processFrame(buffer);
+            if (streamError && !finalResult) {
+              if (streamedText.trim()) {
+                lastGenerateWarning = `生成中断（${streamError}），已保留已输出内容`;
+                stopRequested = false;
+                return { ok: true, engine, text: streamedText.trim(), partial: true, warning: lastGenerateWarning, durationMs: Date.now() - startedAt };
+              }
+              throw Error(streamError);
+            }
+            if (finalResult && finalResult.text) {
+              if (finalResult.partial) {
+                lastGenerateWarning = finalResult.warning || "生成未完整结束，已保留已生成内容";
+                stopRequested = false;
+              }
+              return finalResult;
+            }
+            if (streamedText.trim()) {
+              lastGenerateWarning = "连接已结束，已保留已输出内容";
+              stopRequested = false;
+              return { ok: true, engine, text: streamedText.trim(), partial: true, warning: lastGenerateWarning, durationMs: Date.now() - startedAt };
+            }
+            throw Error("CLI 未返回正文");
+          }
+        }
+        const reply = await fetch(bridge + "/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          signal: activeAbort.signal
+        });
+        const data = await reply.json();
+        if (!data.ok) {
+          if (reply.status === 403) fileCode = "";
+          throw Error(data.error);
+        }
+        return data;
+      } catch (err) {
+        if (err.name === "AbortError" && streamedText.trim()) {
+          lastGenerateWarning = "已手动停止，已保留已生成的内容";
+          stopRequested = false;
+          return { ok: true, engine, text: streamedText.trim(), partial: true, warning: lastGenerateWarning, durationMs: Date.now() - startedAt };
+        }
+        throw err;
+      } finally {
+        clearInterval(tickTimer);
+        clearTimeout(stopGraceTimer);
+        liveBubble?.remove();
+        activeAbort = null;
       }
-      return data;
     }
     const chapterNumber = name => Number((name.match(/第\s*(\d+)\s*章/) || name.match(/^(\d+)(?=[_\-\s.])/))?.[1] || 0);
     function formatNextChapterFilename(book, number, title) {
@@ -2167,12 +2919,73 @@
       $("cliMessage").textContent = `${INTENT_LABELS[intent]} · 正在调用 ${model || $("cliEngine").value}…`;
       try {
         const assetSections = await readBoundAssetsSections(book);
+        function makeLiveEditorWriter(file, composeText) {
+          let lastDiskFlush = 0, flushChain = Promise.resolve(), expectedDisk = state.savedText, lastWritten = state.savedText, touchedDisk = false;
+          state.studioEditing = true;
+          if (state.wsMode === "studio") applyWsMode("studio", { fromHistory: true });
+          const flushToDisk = (fullText, force = false) => {
+            const now = Date.now();
+            if (!force && now - lastDiskFlush < 1800) return;
+            lastDiskFlush = now;
+            flushChain = flushChain.then(async () => {
+              if (state.currentFile?.path !== file.path) return;
+              try {
+                await writeHandleText(file.handle, fullText, expectedDisk);
+                expectedDisk = fullText;
+                lastWritten = fullText;
+                touchedDisk = true;
+                state.savedText = fullText;
+                state.dirty = $("editorArea").value !== state.savedText;
+                syncDirtyUI();
+                $("statusSaved").textContent = "实时已保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+              } catch {}
+            });
+          };
+          return {
+            onDelta(_chunk, streamed) {
+              if (state.currentFile?.path !== file.path) return;
+              const composed = composeText(streamed);
+              const ta = $("editorArea");
+              ta.value = composed;
+              ta.scrollTop = ta.scrollHeight;
+              state.dirty = composed !== state.savedText;
+              syncDirtyUI();
+              renderCurrentDoc(composed);
+              saveLocalDraft();
+              flushToDisk(composed, false);
+            },
+            async getPendingState() {
+              await flushChain;
+              return { touchedDisk, lastWritten };
+            },
+            async finalize(finalText) {
+              await flushChain;
+              if (state.currentFile?.path === file.path) {
+                $("editorArea").value = finalText;
+                renderCurrentDoc(finalText);
+              }
+              await writeHandleText(file.handle, finalText, expectedDisk);
+              expectedDisk = finalText;
+              lastWritten = finalText;
+              touchedDisk = true;
+              state.savedText = finalText;
+              state.dirty = false;
+              clearLocalDraft(state.rootHandle, book?.name, file.path);
+              syncDirtyUI();
+              $("statusSaved").textContent = "已实时保存 " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+              file.words = countWords(finalText);
+              file.cnWords = countCnWords(finalText);
+              book.totalWords = book.chapters.reduce((n, c) => n + (c.words || 0), 0);
+              renderNav(); updateRightPanel();
+            }
+          };
+        }
         if (intent === "continue") {
           const file = state.currentFile;
           if (!file) throw Error("请先在左侧打开要续写的章节，或直接说「开新的一章」");
           if (!file.isChapter || archiveName.test(file.name)) throw Error("当前打开的是核心档案，请先选择正文章节，或选择「② 开新一章」");
+          if (state.dirty) await saveCurrentFile({ silent: true, skipProgress: true });
           const prevText = $("editorArea").value;
-          const diskBefore = await readHandleText(file.handle);
           const { materials } = await collectBookMaterials(book);
           const promptText = [
             `你是小说编辑，正在为《${book.name}》当前章节「${file.name}」继续往后写。`,
@@ -2182,35 +2995,36 @@
             ...materials,
             `当前章节已有内容（结尾部分）：\n${prevText.slice(-3000)}`
           ].filter(Boolean).join("\n\n");
-          const data = await callLocalGenerate(promptText);
-          await reviewGenerated(data.text, INTENT_LABELS[intent]);
-          guardContext();
-          const added = stripCodeFence(data.text);
-          const nextText = prevText.trimEnd() ? `${prevText.trimEnd()}\n\n${added}\n` : `${added}\n`;
+          const compose = (s) => prevText.trimEnd() ? `${prevText.trimEnd()}\n\n${stripCodeFence(s)}\n` : `${stripCodeFence(s)}\n`;
+          const writer = makeLiveEditorWriter(file, compose);
           const undoId = "u-" + Date.now();
-          undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText: diskBefore, nextText, used: false };
-          await applyToCurrentEditorAndSave(file, nextText, "AI 续写后", diskBefore);
-          await syncBookProgress(state.currentBook, { aiSummary: true });
-          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已继续往后写并自动保存到《${file.name}》（新增约 ${countWords(added)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。` });
+          let data;
+          try {
+            data = await callLocalGenerate(promptText, { stream: true, onDelta: writer.onDelta });
+          } catch (streamErr) {
+            const st = await writer.getPendingState();
+            if (st.touchedDisk && st.lastWritten !== prevText) {
+              undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText, nextText: st.lastWritten, used: false };
+              streamErr._undoId = undoId;
+            }
+            throw streamErr;
+          }
+          const added = stripCodeFence(data.text);
+          const nextText = compose(added);
+          undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText, nextText, used: false };
+          await writer.finalize(nextText);
+          lastAiBaseline = { filePath: file.path, text: nextText, source: "AI 续写后" };
+          await syncBookProgress(state.currentBook, { aiSummary: !data.partial });
+          const warnNote = data.partial ? `（⚠️ ${data.warning || "未完整结束，已保留已生成内容"}）` : "";
+          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已实时续写并保存到《${file.name}》（新增约 ${countWords(added)} 字 · ${Math.round(data.durationMs / 1000)} 秒）${warnNote}。` });
         } else if (intent === "new_chapter") {
+          if (state.dirty) await saveCurrentFile({ silent: true, skipProgress: true });
           const { materials, tail } = await collectBookMaterials(book);
           const maxNum = book.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
           const nextNum = Math.max(maxNum, book.chapters.length) + 1;
-          const promptText = [
-            `你是小说编辑，正在为《${book.name}》创作新的一章（第${nextNum}章）。`,
-            `请直接输出完整的纯 Markdown 正文，第一行必须是章节标题（格式：# 第${nextNum}章 简短章名），不要解释说明，不要包代码围栏。`,
-            ...assetSections,
-            rawInput ? `作者对这一章的要求：${rawInput}` : "承接上一章自然展开新章情节，2000~3000 字。",
-            ...materials,
-            `上一章结尾：\n${tail}`
-          ].filter(Boolean).join("\n\n");
-          const data = await callLocalGenerate(promptText);
-          await reviewGenerated(data.text, INTENT_LABELS[intent]);
-          guardContext();
-          let bodyOut = stripCodeFence(data.text);
-          const title = (bodyOut.match(/^#\s+(.+)$/m)?.[1] || "草稿").replace(/^第\S+?章\s*/, "").replace(/[\\/:*?"<>|]/g, "").trim().slice(0, 50) || "新章";
           const targetSub = book.chapterDirName || "04-正文";
-          let savedName = "";
+          const today = new Date().toISOString().slice(0, 10);
+          let savedName = "", headerPrefix = "";
           await navigator.locks.request("loki-next-" + book.name, async () => {
             const dir = await book.dirHandle.getDirectoryHandle(targetSub, { create: true });
             let n = maxNum, count = 0;
@@ -2220,42 +3034,112 @@
               }
             }
             const finalNum = Math.max(n, count) + 1;
-            savedName = formatNextChapterFilename(book, finalNum, title);
-            if (!bodyOut.startsWith("---")) {
-              const today = new Date().toISOString().slice(0, 10);
-              bodyOut = `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${finalNum}\ntitle: "${title}"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n${bodyOut}\n`;
-            }
-            await writeHandleText(await dir.getFileHandle(savedName, { create: true }), bodyOut);
+            savedName = formatNextChapterFilename(book, finalNum, "新章");
+            headerPrefix = `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${finalNum}\ntitle: "第${finalNum}章"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n`;
+            await writeHandleText(await dir.getFileHandle(savedName, { create: true }), headerPrefix);
           });
           state.studioEditing = true;
           await scanWorkspace(true, `${targetSub}/${savedName}`);
-          lastAiBaseline = { filePath: `${targetSub}/${savedName}`, text: bodyOut, source: "AI 新章初稿" };
-          applyWsMode("studio");
-          await syncBookProgress(state.currentBook, { aiSummary: true });
-          chatHistory.push({ role: "ai", intent, text: `✅ 已自动新建并打开《${savedName}》（约 ${countWords(bodyOut)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。你可以直接手动修改，或在下方继续对话微调。` });
+          const newFile = state.currentFile;
+          const promptText = [
+            `你是小说编辑，正在为《${book.name}》创作新的一章（第${nextNum}章）。`,
+            `请直接输出完整的纯 Markdown 正文，第一行必须是章节标题（格式：# 第${nextNum}章 简短章名），不要解释说明，不要包代码围栏。`,
+            ...assetSections,
+            rawInput ? `作者对这一章的要求：${rawInput}` : "承接上一章自然展开新章情节，2000~3000 字。",
+            ...materials,
+            `上一章结尾：\n${tail}`
+          ].filter(Boolean).join("\n\n");
+          const compose = (s) => { const clean = stripCodeFence(s); return clean.startsWith("---") ? `${clean}\n` : `${headerPrefix}${clean}\n`; };
+          const writer = makeLiveEditorWriter(newFile, compose);
+          const data = await callLocalGenerate(promptText, { stream: true, onDelta: writer.onDelta });
+          const bodyOut = compose(data.text);
+          await writer.finalize(bodyOut);
+          lastAiBaseline = { filePath: newFile.path, text: bodyOut, source: "AI 新章初稿" };
+          await syncBookProgress(state.currentBook, { aiSummary: !data.partial });
+          const warnNote = data.partial ? `（⚠️ ${data.warning || "未完整结束，已保留已生成内容"}）` : "";
+          chatHistory.push({ role: "ai", intent, text: `✅ 已实时新建并保存到《${savedName}》（约 ${countWords(bodyOut)} 字 · ${Math.round(data.durationMs / 1000)} 秒）${warnNote}。你可以直接手动修改或继续续写。` });
         } else if (intent === "edit_current") {
           const file = state.currentFile;
           const prevText = $("editorArea").value;
           if (!file || !prevText.trim()) throw Error("请先打开有内容的章节再修改");
-          const diskBefore = await readHandleText(file.handle);
+          if (state.dirty) await saveCurrentFile({ silent: true, skipProgress: true });
           const priorUserMsgs = chatHistory.filter(m => m.role === "user" && m.intent === "edit_current").slice(-6, -1).map((m, i) => `${i + 1}. ${m.text}`).join("\n");
+          const refArchives = await Promise.all((book.coreFiles || []).filter(f => f.path !== file.path).map(async f => {
+            try {
+              const txt = (await readHandleText(f.handle)).trim();
+              return txt ? `### 参考档案：${f.name}\n${txt}` : "";
+            } catch { return ""; }
+          }));
+          const refSection = refArchives.filter(Boolean).join("\n\n");
+          const isBlankTemplate = countWords(prevText) < 120;
+          const wantsFullRewrite = /(全文重写|整章重写|全部重写|重新写一遍|从头重写|重写整篇|通篇重写)/.test(rawInput);
+          const usePatchMode = !isBlankTemplate && !wantsFullRewrite && prevText.length >= 300;
+          const editInstruction = usePatchMode
+            ? [
+                "请**只输出需要修改的局部替换块**，绝对不要把未改动的段落重新输出一遍！每个改动严格按下面格式输出（可以输出多个替换块）：",
+                "<<<<<<< 原文\n（从原文中逐字复制需要修改的那一句或那一段，保证唯一且与原文完全一致）\n=======\n（修改后的新内容；若要删除该段则此处留空）\n>>>>>>> 改为",
+                "只输出上述替换块，不要输出寒暄、解释或未改动内容。"
+              ].join("\n")
+            : "请严格按作者的最新要求填写或修改下面的文档，保留原有 Markdown 结构与 YAML 元数据。只输出修改后的完整 Markdown 文本，不要解释，不要包代码围栏。";
           const promptText = [
-            `你是小说编辑，正在按作者要求修改《${book.name}》当前文档「${file.name}」。`,
-            "请严格按作者的最新要求修改下面的文本，保留未要求改动的情节、人物口吻、Markdown 标题与 YAML 元数据。只输出修改后的完整 Markdown 文本，不要解释，不要包代码围栏。",
+            `你是小说编辑，正在按作者要求编辑《${book.name}》当前文档「${file.name}」。`,
+            editInstruction,
             ...assetSections,
+            refSection ? `## 本书其他核心档案参考（用于对齐设定、人物与时间线）\n${refSection}` : "",
             priorUserMsgs ? `此前已确认过的修改要求（不要回退）：\n${priorUserMsgs}` : "",
-            `当前全文：\n${prevText}`,
+            `当前文档全文（请只修改这份文档）：\n${prevText}`,
             `作者最新要求：${rawInput}`
           ].filter(Boolean).join("\n\n");
-          const data = await callLocalGenerate(promptText);
-          await reviewGenerated(data.text, INTENT_LABELS[intent]);
-          guardContext();
-          const nextText = stripCodeFence(data.text);
-          const undoId = "u-" + Date.now();
-          undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText: diskBefore, nextText, used: false };
-          await applyToCurrentEditorAndSave(file, nextText, "AI 修改后", diskBefore);
-          if (file.isChapter) await syncBookProgress(state.currentBook);
-          chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已在当前章基础上完成修改并自动保存（约 ${countWords(nextText)} 字 · ${Math.round(data.durationMs / 1000)} 秒）。不满意可点下方一键撤销。` });
+          if (isBlankTemplate) {
+            // 空白/模板文档全新写入：直接实时流式写进宽大的主文档编辑区，右侧只留简洁进度，支持一键撤销
+            const compose = (s) => stripCodeFence(s);
+            const writer = makeLiveEditorWriter(file, compose);
+            const undoId = "u-" + Date.now();
+            let data;
+            try {
+              data = await callLocalGenerate(promptText, { stream: true, onDelta: writer.onDelta });
+            } catch (streamErr) {
+              const st = await writer.getPendingState();
+              if (st.touchedDisk && st.lastWritten !== prevText) {
+                undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText, nextText: st.lastWritten, used: false };
+                streamErr._undoId = undoId;
+              }
+              throw streamErr;
+            }
+            const nextText = compose(data.text);
+            if (!nextText.trim()) throw Error("生成内容为空，原稿未改动");
+            undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText, nextText, used: false };
+            await writer.finalize(nextText);
+            lastAiBaseline = { filePath: file.path, text: nextText, source: "AI 全新写入" };
+            if (file.isChapter) await syncBookProgress(state.currentBook);
+            const warnNote = data.partial ? `（⚠️ ${data.warning || "未完整结束，已保留已生成内容"}）` : "";
+            chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已实时写入并保存到《${file.name}》（约 ${countWords(nextText)} 字 · ${Math.round(data.durationMs / 1000)} 秒）${warnNote}。不满意可点下方一键撤销。` });
+          } else {
+            // 已有内容的文档：优先使用局部替换块节省输出额度，完成后直接在主稿纸进入修订审阅
+            const data = await callLocalGenerate(promptText, { stream: true });
+            const patchRes = applyEditPatches(prevText, data.text);
+            if (patchRes.isPatch && patchRes.applied === 0) {
+              chatHistory.push({ role: "ai", intent, text: "⚠️ 模型返回了局部修改块，但未能精确匹配原文，原稿未改动。原始输出：\n" + data.text });
+              throw Error("局部修改块未匹配到原文，原稿未改动");
+            }
+            if (patchRes.isPatch && patchRes.failed > 0) {
+              lastGenerateWarning = [lastGenerateWarning, `有 ${patchRes.failed}/${patchRes.total} 处局部修改未能匹配原文，已自动跳过`].filter(Boolean).join("；");
+            }
+            const candidateText = patchRes.text;
+            if (!candidateText.trim()) throw Error("生成内容为空，原稿未改动");
+            const nextText = await reviewGenerated(candidateText, INTENT_LABELS[intent], { originalText: prevText });
+            guardContext();
+            if (nextText === prevText) {
+              chatHistory.push({ role: "ai", intent, text: `ℹ️ 已保留《${file.name}》原稿，未应用改动。` });
+            } else {
+              const undoId = "u-" + Date.now();
+              undoSnapshots[undoId] = { type: "chapter", root: state.rootHandle, bookName: book.name, handle: file.handle, filePath: file.path, prevText, nextText, used: false };
+              await applyToCurrentEditorAndSave(file, nextText, "AI 修改后", prevText);
+              if (file.isChapter) await syncBookProgress(state.currentBook);
+              const warnNote = data.partial ? `（⚠️ ${data.warning || "未完整结束，已保留已生成内容"}）` : "";
+              chatHistory.push({ role: "ai", intent, undoId, text: `✅ 已应用所选修改并保存到《${file.name}》（约 ${countWords(nextText)} 字 · ${Math.round(data.durationMs / 1000)} 秒）${warnNote}。不满意可点下方一键撤销。` });
+            }
+          }
         } else if (intent === "edit_multi") {
           if (!rawInput) throw Error("请描述要跨章修改的问题");
           if (state.dirty) throw Error("请先保存当前手动修改再批量修订");
@@ -2356,7 +3240,7 @@
         toast("已完成：" + INTENT_LABELS[intent]);
       } catch (e) {
         const message = e.name === "AbortError" ? "已停止接收与写回；客户端可能仍在生成" : e.message;
-        chatHistory.push({ role: "ai", intent, text: (e.name === "AbortError" ? "⏹ " : "❌ ") + message });
+        chatHistory.push({ role: "ai", intent, ...(e._undoId ? { undoId: e._undoId } : {}), text: (e.name === "AbortError" ? "⏹ " : "❌ ") + message });
         renderChatLog();
         $("cliMessage").textContent = message;
       } finally {
@@ -2367,7 +3251,7 @@
     $("cliCheck").onclick = () => detectCLI(true);
     $("cliSendBtn").onclick = runDialogAction;
     $("cliChatInput").addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); runDialogAction(); }
+      if (e.key === "Enter" && !e.shiftKey && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); runDialogAction(); }
     });
     $("cliClearChat").onclick = () => { chatHistory = []; renderChatLog(); toast("已清空对话记录"); };
     renderChatLog();
@@ -2570,49 +3454,103 @@
       } catch (e) { if (e.name !== "AbortError") toast("打开失败：" + e.message); }
     }
 
+    function openModal(id, focusId) {
+      $(id).classList.add("open");
+      pushNavHistory(id);
+      if (focusId) setTimeout(() => $(focusId)?.focus(), 20);
+    }
+    function closeModal(id, options = {}) {
+      if (id === "modalBook" && isCreatingBook) { toast("正在创建作品，请稍候"); return false; }
+      if (id === "modalChapter" && isCreatingChapter) { toast("正在创建章节，请稍候"); return false; }
+      $(id).classList.remove("open");
+      if (!options.fromHistory && history.state?.modal === id) {
+        pushNavHistory(null, true);
+      }
+      return true;
+    }
+
+    async function openNewBookModal() {
+      if (!state.rootHandle) return toast("请先连接书架目录");
+      if (!(await guardUnsaved("新建作品"))) return;
+      openModal("modalBook", "inputBookTitle");
+    }
+
     async function createNewBook() {
+      if (isCreatingBook) return;
       const title = $("inputBookTitle").value.trim().replace(/[\\/:*?"<>|]/g, "");
       const genre = $("inputBookGenre").value.trim() || "待定";
       if (!title) return toast("请输入书名");
-      const bookDir = await state.rootHandle.getDirectoryHandle(title, { create: true });
-      await bookDir.getDirectoryHandle("04-正文", { create: true });
-      const files = {
-        "00-总纲与世界观.md": `---\ntype: novel-bible\nbook: "${title}"\ngenre: "${genre}"\nstatus: 筹备中\ntarget_words_per_chapter: 3000\ntags:\n  - 小说工作台\n  - 总纲\n---\n\n# 总纲与世界观\n\n## 基本信息\n- **书名**：${title}\n- **题材与基调**：${genre}\n- **核心卖点 / 一句话梗概**：\n- **叙事视角**：第三人称有限视角\n- **单章目标字数**：2500 ~ 3500 字\n\n## 文风与避雷\n- **想要的文字质感**：\n- **明确不要的 AI 腔 / 雷区**：\n\n## 世界观与底层规则\n- **时代与主要舞台**：\n- **核心规则**：\n\n## 分卷大纲\n### 第一卷：\n- **卷核心目标**：\n\n## 相关档案\n- [[01-人物状态卡]]\n- [[02-伏笔与时间线]]\n- [[03-当前进度]]\n`,
-        "01-人物状态卡.md": `---\ntype: novel-characters\nbook: "${title}"\nupdated_chapter: 0\ntags:\n  - 小说工作台\n  - 人物卡\n---\n\n# 人物状态卡\n\n## 主角：\n- **核心性格底色**：\n- **OOC 红线**：\n- **当前动态**（更新至第 0 章）：\n  - 所在位置：\n  - 当前目标：\n`,
-        "02-伏笔与时间线.md": `---\ntype: novel-ledger\nbook: "${title}"\ntags:\n  - 小说工作台\n  - 伏笔与时间线\n---\n\n# 伏笔与时间线\n\n## 伏笔账本\n\n| 编号 | 伏笔内容 | 埋设章节 | 计划回收窗口 | 状态 | 回收说明 |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| F01 | （示例）抽屉里的铜钥匙 | 第 1 章 | 第 5~8 章 | 待回收 | |\n\n## 故事时间线\n\n| 故事时间 | 对应章节 | 地点 | 关键事件 | 影响的人物 |\n| :--- | :--- | :--- | :--- | :--- | |\n`,
-        "03-当前进度.md": `---\ntype: novel-progress\nbook: "${title}"\nlatest_chapter: 0\nnext_chapter: 1\ntags:\n  - 小说工作台\n  - 进度\n---\n\n# 当前进度\n\n- **最新已完成章节**：暂无（待开篇）\n- **下一章编号**：第 1 章\n\n## 上一章结尾锚点\n- 时间与地点：\n- 悬念：\n\n## 下一章写作备忘\n- **本章必须推进的剧情**：\n`,
-      };
-      for (const [k, v] of Object.entries(files)) await writeHandleText(await bookDir.getFileHandle(k, { create: true }), v);
-      $("modalBook").classList.remove("open");
-      $("inputBookTitle").value = ""; $("inputBookGenre").value = "";
-      await scanWorkspace(false); await selectBook(title, "00-总纲与世界观.md");
-      toast(`已创建作品《${title}》`);
+      if (state.books.some((b) => !b.isLooseBucket && b.name === title)) {
+        return toast(`作品《${title}》已存在，请换一个书名`);
+      }
+      if (!(await guardUnsaved("新建作品"))) return;
+      isCreatingBook = true;
+      $("btnConfirmBook").disabled = true;
+      $("btnCancelBook").disabled = true;
+      try {
+        const bookDir = await state.rootHandle.getDirectoryHandle(title, { create: true });
+        await bookDir.getDirectoryHandle("04-正文", { create: true });
+        const files = {
+          "00-总纲与世界观.md": `---\ntype: novel-bible\nbook: "${title}"\ngenre: "${genre}"\nstatus: 筹备中\ntarget_words_per_chapter: 3000\ntags:\n  - 小说工作台\n  - 总纲\n---\n\n# 总纲与世界观\n\n## 基本信息\n- **书名**：${title}\n- **题材与基调**：${genre}\n- **核心卖点 / 一句话梗概**：\n- **叙事视角**：第三人称有限视角\n- **单章目标字数**：2500 ~ 3500 字\n\n## 文风与避雷\n- **想要的文字质感**：\n- **明确不要的 AI 腔 / 雷区**：\n\n## 世界观与底层规则\n- **时代与主要舞台**：\n- **核心规则**：\n\n## 分卷大纲\n### 第一卷：\n- **卷核心目标**：\n\n## 相关档案\n- [[01-人物状态卡]]\n- [[02-伏笔与时间线]]\n- [[03-当前进度]]\n`,
+          "01-人物状态卡.md": `---\ntype: novel-characters\nbook: "${title}"\nupdated_chapter: 0\ntags:\n  - 小说工作台\n  - 人物卡\n---\n\n# 人物状态卡\n\n## 主角：\n- **核心性格底色**：\n- **OOC 红线**：\n- **当前动态**（更新至第 0 章）：\n  - 所在位置：\n  - 当前目标：\n`,
+          "02-伏笔与时间线.md": `---\ntype: novel-ledger\nbook: "${title}"\ntags:\n  - 小说工作台\n  - 伏笔与时间线\n---\n\n# 伏笔与时间线\n\n## 伏笔账本\n\n| 编号 | 伏笔内容 | 埋设章节 | 计划回收窗口 | 状态 | 回收说明 |\n| :--- | :--- | :--- | :--- | :--- | :--- |\n| F01 | （示例）抽屉里的铜钥匙 | 第 1 章 | 第 5~8 章 | 待回收 | |\n\n## 故事时间线\n\n| 故事时间 | 对应章节 | 地点 | 关键事件 | 影响的人物 |\n| :--- | :--- | :--- | :--- | :--- | |\n`,
+          "03-当前进度.md": `---\ntype: novel-progress\nbook: "${title}"\nlatest_chapter: 0\nnext_chapter: 1\ntags:\n  - 小说工作台\n  - 进度\n---\n\n# 当前进度\n\n- **最新已完成章节**：暂无（待开篇）\n- **下一章编号**：第 1 章\n\n## 上一章结尾锚点\n- 时间与地点：\n- 悬念：\n\n## 下一章写作备忘\n- **本章必须推进的剧情**：\n`,
+        };
+        for (const [k, v] of Object.entries(files)) await writeHandleText(await bookDir.getFileHandle(k, { create: true }), v);
+        isCreatingBook = false;
+        closeModal("modalBook");
+        $("inputBookTitle").value = ""; $("inputBookGenre").value = "";
+        await scanWorkspace(false); await selectBook(title, "00-总纲与世界观.md", { skipDirtyCheck: true });
+        toast(`已创建作品《${title}》`);
+      } finally {
+        isCreatingBook = false;
+        $("btnConfirmBook").disabled = false;
+        $("btnCancelBook").disabled = false;
+      }
     }
 
-    function openNewChapterModal() {
+    async function openNewChapterModal() {
       if (!state.currentBook || state.currentBook.isLooseBucket) return toast("请先选择一部作品");
+      if (!(await guardUnsaved("新建章节"))) return;
       const maxNum = state.currentBook.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
       $("inputChapterNum").value = Math.max(maxNum, state.currentBook.chapters.length) + 1;
-      $("modalChapter").classList.add("open");
-      $("inputChapterTitle").focus();
+      openModal("modalChapter", "inputChapterTitle");
     }
     async function createNewChapter() {
+      if (isCreatingChapter) return;
       const book = state.currentBook;
       if (!book) return;
+      if (!(await guardUnsaved("新建章节"))) return;
       const maxNum = book.chapters.reduce((m, c) => Math.max(m, chapterNumber(c.name)), 0);
       const num = Number($("inputChapterNum").value) || (Math.max(maxNum, book.chapters.length) + 1);
       const title = ($("inputChapterTitle").value.trim() || "未命名").replace(/[\\/:*?"<>|]/g, "");
       const fname = formatNextChapterFilename(book, num, title);
       const targetSub = book.chapterDirName || "04-正文";
-      const chDir = await book.dirHandle.getDirectoryHandle(targetSub, { create: true });
-      const fh = await chDir.getFileHandle(fname, { create: true });
-      const today = new Date().toISOString().slice(0, 10);
-      await writeHandleText(fh, `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${num}\ntitle: "${title}"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n# 第${num}章 ${title}\n\n`);
-      $("modalChapter").classList.remove("open"); $("inputChapterTitle").value = "";
-      state.studioEditing = true;
-      await scanWorkspace(true, `${targetSub}/${fname}`);
-      applyWsMode("studio");
-      toast(`已新建 ${fname}，可直接开写或用右侧 AI 生成细纲/正文`);
+      isCreatingChapter = true;
+      $("btnConfirmChapter").disabled = true;
+      $("btnCancelChapter").disabled = true;
+      try {
+        const chDir = await book.dirHandle.getDirectoryHandle(targetSub, { create: true });
+        if (!serviceMode) {
+          let exists = false;
+          try { await chDir.getFileHandle(fname); exists = true; } catch {}
+          if (exists) throw Error(`同名章节文件 ${fname} 已存在，请修改章号或标题`);
+        }
+        const fh = await chDir.getFileHandle(fname, { create: true });
+        const today = new Date().toISOString().slice(0, 10);
+        await writeHandleText(fh, `---\ntype: novel-chapter\nbook: "${book.name}"\nchapter: ${num}\ntitle: "${title}"\nstatus: 草稿\ncreated: ${today}\ntags:\n  - 小说工作台\n  - 正文\n---\n\n# 第${num}章 ${title}\n\n`);
+        isCreatingChapter = false;
+        closeModal("modalChapter");
+        $("inputChapterTitle").value = "";
+        state.studioEditing = true;
+        await scanWorkspace(true, `${targetSub}/${fname}`);
+        applyWsMode("studio", { fromHistory: true });
+        toast(`已新建 ${fname}，可直接开写或用右侧 AI 生成细纲/正文`);
+      } finally {
+        isCreatingChapter = false;
+        $("btnConfirmChapter").disabled = false;
+        $("btnCancelChapter").disabled = false;
+      }
     }
 
     function centerTypewriter() {
@@ -2626,19 +3564,30 @@
     $("btnOpenDir").onclick = openDirectory;
     $("btnOpenDirBig").onclick = openDirectory;
     $("btnAddDirSide").onclick = openDirectory;
-    $("btnRefresh").onclick = () => scanWorkspace(true).then(() => toast("已刷新目录"));
+    $("btnRefresh").onclick = async () => {
+      if (!(await guardUnsaved("刷新目录"))) return;
+      await scanWorkspace(true);
+      toast("已刷新目录");
+    };
     $("bookSelect").onchange = (e) => selectBook(e.target.value);
-    $("btnSave").onclick = saveCurrentFile; $("btnZenSave").onclick = saveCurrentFile;
+    $("btnSave").onclick = () => saveCurrentFile();
+    $("btnZenSave").onclick = () => saveCurrentFile();
     $("btnCopyPack").onclick = copyContextPack; $("btnCopyPackSide").onclick = copyContextPack;
-    $("btnToggleEdit").onclick = () => { if (state.wsMode !== "studio") applyWsMode("studio"); state.studioEditing = !state.studioEditing; applyWsMode("studio"); };
+    $("btnToggleEdit").onclick = () => { if (state.wsMode !== "studio") applyWsMode("studio", { fromHistory: true }); state.studioEditing = !state.studioEditing; applyWsMode("studio"); };
+    if ($("btnToggleRightbar")) {
+      $("btnToggleRightbar").onclick = () => document.body.classList.toggle("rightbar-drawer-open");
+    }
 
     document.querySelectorAll("#modeBar button").forEach((b) => { b.onclick = () => applyWsMode(b.dataset.wsMode); });
     $("btnExitZen").onclick = () => applyWsMode("studio");
 
-    const openDrawer = () => $("drawerBackdrop").classList.add("open");
-    const closeDrawer = () => $("drawerBackdrop").classList.remove("open");
+    const openDrawer = () => { $("drawerBackdrop").classList.add("open"); pushNavHistory("drawerBackdrop"); };
+    const closeDrawer = (options = {}) => {
+      $("drawerBackdrop").classList.remove("open");
+      if (!options.fromHistory && history.state?.modal === "drawerBackdrop") pushNavHistory(null, true);
+    };
     $("btnSkinDrawer").onclick = openDrawer; $("btnOpenSkinsBig").onclick = openDrawer; $("btnZenSkin").onclick = openDrawer;
-    $("btnCloseDrawer").onclick = closeDrawer;
+    $("btnCloseDrawer").onclick = () => closeDrawer();
     $("drawerBackdrop").onclick = (e) => { if (e.target === $("drawerBackdrop")) closeDrawer(); };
 
     document.querySelectorAll("#filterTabs button").forEach((b) => {
@@ -2656,30 +3605,110 @@
     document.querySelectorAll("#widthPills button").forEach((b) => { b.onclick = () => { state.editorWidth = b.dataset.width; applyTypography(); }; });
     $("btnToggleIndent").onclick = () => { state.indentP = !state.indentP; applyTypography(); };
 
-    $("btnNewBook").onclick = () => { $("modalBook").classList.add("open"); $("inputBookTitle").focus(); };
-    $("btnCancelBook").onclick = () => $("modalBook").classList.remove("open");
+    $("btnNewBook").onclick = () => openNewBookModal().catch(e => toast(e.message));
+    $("btnCancelBook").onclick = () => closeModal("modalBook");
     $("btnConfirmBook").onclick = () => createNewBook().catch(e => toast(e.message));
+    $("modalBook").onclick = (e) => { if (e.target === $("modalBook")) closeModal("modalBook"); };
 
-    $("btnNewChapter").onclick = openNewChapterModal;
-    $("btnNewChapterTop").onclick = openNewChapterModal;
-    $("btnCancelChapter").onclick = () => $("modalChapter").classList.remove("open");
+    $("btnNewChapter").onclick = () => openNewChapterModal().catch(e => toast(e.message));
+    $("btnNewChapterTop").onclick = () => openNewChapterModal().catch(e => toast(e.message));
+    $("btnCancelChapter").onclick = () => closeModal("modalChapter");
     $("btnConfirmChapter").onclick = () => createNewChapter().catch(e => toast(e.message));
+    $("modalChapter").onclick = (e) => { if (e.target === $("modalChapter")) closeModal("modalChapter"); };
 
+    ["inputBookTitle", "inputBookGenre"].forEach((id) => {
+      $(id).addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); createNewBook().catch(err => toast(err.message)); }
+      });
+    });
+    ["inputChapterNum", "inputChapterTitle"].forEach((id) => {
+      $(id).addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) { e.preventDefault(); createNewChapter().catch(err => toast(err.message)); }
+      });
+    });
+
+    let autoSaveTimer = null;
     $("editorArea").addEventListener("input", () => {
       const val = $("editorArea").value;
       state.dirty = val !== state.savedText;
-      $("dirtyDot").classList.toggle("show", state.dirty); $("btnSave").disabled = !state.dirty;
-      $("statusSaved").textContent = state.dirty ? "未保存" : "已同步";
+      syncDirtyUI();
+      clearTimeout(draftTimer);
+      draftTimer = setTimeout(saveLocalDraft, 350);
+      clearTimeout(autoSaveTimer);
+      if (state.dirty && state.currentFile && !writing) {
+        autoSaveTimer = setTimeout(() => {
+          if (state.dirty && !state.saving && !writing) saveCurrentFile({ silent: true, skipProgress: true });
+        }, 1200);
+      }
       renderCurrentDoc(val); centerTypewriter();
     });
     $("editorArea").addEventListener("keyup", centerTypewriter);
     $("editorArea").addEventListener("click", centerTypewriter);
 
+    window.addEventListener("beforeunload", (e) => {
+      if (state.dirty) {
+        saveLocalDraft();
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    });
+
+    window.addEventListener("popstate", async (e) => {
+      const target = e.state;
+      if ($("modalBook").classList.contains("open")) {
+        if (isCreatingBook) { pushNavHistory("modalBook"); toast("正在创建作品，请稍候"); return; }
+        closeModal("modalBook", { fromHistory: true });
+        return;
+      }
+      if ($("modalChapter").classList.contains("open")) {
+        if (isCreatingChapter) { pushNavHistory("modalChapter"); toast("正在创建章节，请稍候"); return; }
+        closeModal("modalChapter", { fromHistory: true });
+        return;
+      }
+      if ($("drawerBackdrop").classList.contains("open")) {
+        closeDrawer({ fromHistory: true });
+        return;
+      }
+      if (!target || !target.bookName) return;
+      const sameDoc = target.bookName === (state.currentBook?.name || "")
+        && target.filePath === (state.currentFile?.path || "")
+        && (!serviceMode || !target.wsId || target.wsId === (state.rootHandle?.ws?.id || ""));
+      if (!sameDoc && state.dirty) {
+        const ok = await guardUnsaved("切换页面");
+        if (!ok) {
+          pushNavHistory(null, false);
+          return;
+        }
+      }
+      navHistoryLock = true;
+      try {
+        if (serviceMode && target.wsId && target.wsId !== state.rootHandle?.ws?.id) {
+          const ws = state.recentDirs.find((w) => w.id === target.wsId);
+          if (ws) {
+            await enterLocal(ws, { skipDirtyCheck: true, fromHistory: true, bookName: target.bookName, openPath: target.filePath });
+          }
+        } else if (target.bookName && target.bookName !== state.currentBook?.name) {
+          await selectBook(target.bookName, target.filePath, { skipDirtyCheck: true, fromHistory: true });
+        } else if (target.filePath && target.filePath !== state.currentFile?.path && state.currentBook) {
+          const all = [...state.currentBook.coreFiles, ...state.currentBook.chapters];
+          const match = all.find((f) => f.path === target.filePath);
+          if (match) await openFile(match, { skipDirtyCheck: true, fromHistory: true });
+        }
+        if (typeof target.studioEditing === "boolean") state.studioEditing = target.studioEditing;
+        if (target.wsMode) applyWsMode(target.wsMode, { fromHistory: true });
+      } finally {
+        navHistoryLock = false;
+      }
+    });
+
     window.addEventListener("keydown", (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "s") {
         if (state.currentFile && state.dirty) { e.preventDefault(); saveCurrentFile(); }
       } else if (e.key === "Escape") {
-        if ($("drawerBackdrop").classList.contains("open")) closeDrawer();
+        if ($("modalBook").classList.contains("open")) closeModal("modalBook");
+        else if ($("modalChapter").classList.contains("open")) closeModal("modalChapter");
+        else if ($("drawerBackdrop").classList.contains("open")) closeDrawer();
+        else if (document.body.classList.contains("rightbar-drawer-open")) document.body.classList.remove("rightbar-drawer-open");
         else if (state.wsMode === "zen" || state.wsMode === "typewriter") applyWsMode("studio");
       } else if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
         e.preventDefault(); applyWsMode(state.wsMode === "zen" ? "studio" : "zen");
@@ -2691,7 +3720,7 @@
     renderThemes();
     applyTheme(state.themeId);
     applyTypography();
-    applyWsMode(state.wsMode);
+    applyWsMode(state.wsMode, { fromHistory: true });
     document.body.classList.add("shelf-loading");
     startShelf().finally(() => document.body.classList.remove("shelf-loading"));
   </script>

@@ -7,3 +7,4 @@ workspaces.json
 assets-fallback.json
 *.log
 _workbench-backups/
+_ai-drafts/

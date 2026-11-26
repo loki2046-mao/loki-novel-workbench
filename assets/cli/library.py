@@ -103,12 +103,28 @@ def save(data):
         return {"ok": True}
 
 
+def extract_book_title(text):
+    fm = re.match(r"^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)", text)
+    if fm:
+        m = re.search(r"^book\s*:\s*(.+?)\s*$", fm.group(1), re.M)
+        if m:
+            val = m.group(1).strip().strip("\"'").strip()
+            if val:
+                return val
+    m2 = re.search(r"^-\s*\*\*书名\*\*[：:]\s*(.+?)\s*$", text, re.M)
+    if m2:
+        val = m2.group(1).strip().strip("《》\"'").strip()
+        if val:
+            return val
+    return ""
+
+
 def scan(root):
     books = []
     def book(folder, loose=False):
-        core, chapters, ledger = [], [], ""
+        core, chapters, ledger, display_name = [], [], "", ""
         def collect(directory, prefix=""):
-            nonlocal ledger
+            nonlocal ledger, display_name
             for f in directory.iterdir():
                 if f.is_symlink() or not f.is_file() or f.suffix != ".md" or f.name.lower() == "readme.md" or f.name.startswith("."):
                     continue
@@ -117,6 +133,8 @@ def scan(root):
                 is_core = not prefix and (f.name.startswith("00-") if loose else bool(CORE.search(f.name)))
                 if f.name == "02-伏笔与时间线.md" and not prefix:
                     ledger = text
+                if not loose and not prefix and not display_name and f.name in {"00-总纲与世界观.md", "00_设定集.md", "00_圣经.md", "00_设定与大纲.md"}:
+                    display_name = extract_book_title(text)
                 (core if is_core else chapters).append(dict(path=prefix+f.name,
                     name=("【番外】" if prefix == "番外/" else "")+f.stem,
                     isChapter=not is_core, cnWords=len(CN_CHAR.findall(body)), words=len(COUNT.sub("", body).encode("utf-16-le"))//2))
@@ -126,6 +144,7 @@ def scan(root):
             collect(folder/n, n+"/")
         if not loose or core or chapters:
             books.append(dict(name="根目录总览 / 散落文档" if loose else folder.name,
+                displayName=("根目录总览 / 散落文档" if loose else (display_name or folder.name)),
                 isLooseBucket=loose, chapterDirName="正文" if "正文" in dirs else "04-正文",
                 coreFiles=core, chapters=chapters, totalWords=sum(c["words"] for c in chapters), ledger=ledger))
     def scan_assets(dirname):

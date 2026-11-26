@@ -35,9 +35,14 @@ def fresh_library():
 ROOT = Path(__file__).resolve().parent
 HOSTS = {"localhost:8788", "127.0.0.1:8788"}
 ORIGINS = {"http://" + host for host in HOSTS}
-LIMIT = 1024 * 1024
+LIMIT = 4 * 1024 * 1024
+AGY_INLINE_PROMPT_MAX_BYTES = 100_000
+AGY_POST_OUTPUT_IDLE_SECS = 30.0
 FILE_CODE = secrets.token_urlsafe(12)
 SLOT = threading.Lock()
+ACTIVE_LOCK = threading.Lock()
+ACTIVE_GEN = {"proc": None, "cancelled": False}
+GEN_LOCAL = threading.local()
 ENGINES = {
     "agy": [Path.home() / ".local/bin/agy", Path("/opt/homebrew/bin/agy"), Path("/usr/local/bin/agy")],
     "codex": [Path.home() / ".local/bin/codex", Path("/opt/homebrew/bin/codex"), Path("/usr/local/bin/codex")],
@@ -97,13 +102,59 @@ def cli_detail(stderr, stdout=""):
     return "\n".join(primary or lines[-12:])[-4000:]
 
 
+def cancel_active_generation():
+    with ACTIVE_LOCK:
+        proc = ACTIVE_GEN["proc"]
+        ACTIVE_GEN["cancelled"] = True
+    if proc is None:
+        return False
+    try:
+        if proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(timeout=1.5)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+                proc.wait(timeout=1.5)
+        return True
+    except OSError:
+        return False
+
+
 def run_cli(binary, args, env, *, cwd=None, prompt=None, timeout=20):
-    result = subprocess.run([binary, *args], cwd=cwd, env=env, shell=False,
-                            input=prompt, capture_output=True, text=True, timeout=timeout)
-    if result.returncode:
-        detail = cli_detail(result.stderr, result.stdout)
-        raise ValueError(f"{Path(binary).name} 退出码 {result.returncode}：{detail or '无错误输出'}")
-    return result.stdout
+    tracked = getattr(GEN_LOCAL, "active", False)
+    if tracked:
+        with ACTIVE_LOCK:
+            if ACTIVE_GEN["cancelled"]:
+                raise ValueError("已停止本次生成")
+    proc = subprocess.Popen([binary, *args], cwd=cwd, env=env, shell=False,
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    if tracked:
+        with ACTIVE_LOCK:
+            if ACTIVE_GEN["cancelled"]:
+                proc.terminate()
+                proc.wait()
+                raise ValueError("已停止本次生成")
+            ACTIVE_GEN["proc"] = proc
+    try:
+        stdout, stderr = proc.communicate(input=prompt, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        proc.kill()
+        proc.communicate()
+        raise
+    finally:
+        if tracked:
+            with ACTIVE_LOCK:
+                if ACTIVE_GEN["proc"] is proc:
+                    ACTIVE_GEN["proc"] = None
+    if tracked:
+        with ACTIVE_LOCK:
+            if ACTIVE_GEN["cancelled"]:
+                raise ValueError("已停止本次生成")
+    if proc.returncode:
+        detail = cli_detail(stderr, stdout)
+        raise ValueError(f"{Path(binary).name} 退出码 {proc.returncode}：{detail or '无错误输出'}")
+    return stdout
 
 
 class CliRPC:
@@ -225,29 +276,81 @@ def engine_catalog(force=False):
         return engines
 
 
+def _build_generate_cmd(engine, binary, prompt, model, env, result_file, streaming=False):
+    if engine == "codex":
+        args = ["exec", "--skip-git-repo-check", "--sandbox", "read-only", "-o", str(result_file)]
+        if model:
+            args += ["--model", model]
+        args += ["-"]
+        return args, prompt
+    if engine == "agy":
+        prompt_bytes = len(prompt.encode("utf-8"))
+        if prompt_bytes > AGY_INLINE_PROMPT_MAX_BYTES:
+            prompt_file = result_file.parent / "prompt.md"
+            prompt_file.write_text(prompt, encoding="utf-8")
+            short_prompt = "请完整阅读当前工作目录下的 prompt.md 文件，严格遵循其中的全部设定、风格卡、方法论与指令，直接输出最终正文结果，不要输出读取过程说明。"
+            args = ["-p", short_prompt, "--mode", "auto", "--add-dir", str(result_file.parent), "--print-timeout", "0", "--disable-slash-commands"]
+        else:
+            args = ["-p", prompt, "--print-timeout", "0", "--disable-slash-commands"]
+        if model:
+            args += ["--model", model]
+        return args, ""
+    # This installed CLI has no per-message --model. Never change global settings silently.
+    if model:
+        current = json.loads(run_cli(binary, ["model", "current", "--json"], env))
+        if model != current.get("currentModel"):
+            raise ValueError("当前 Cola CLI 不支持逐次指定模型；请使用客户端默认模型")
+    args = ["message", "--session", "writer-" + uuid.uuid4().hex, "--json", "--", prompt]
+    env["COLA_CLI_TIMEOUT_MS"] = "900000"
+    return args, ""
+
+
+def _extract_stream_json_text(obj, accumulated):
+    """Extract incremental text delta and optional authoritative result from an agy stream-json event."""
+    if not isinstance(obj, dict):
+        return "", None
+    ev_type = obj.get("type")
+    if ev_type == "stream_event" and isinstance(obj.get("event"), dict):
+        return _extract_stream_json_text(obj["event"], accumulated)
+    if ev_type == "content_block_delta":
+        delta = obj.get("delta")
+        if isinstance(delta, dict) and isinstance(delta.get("text"), str):
+            return delta["text"], None
+    if ev_type in {"delta", "text", "text_delta", "agent_message_chunk"}:
+        for key in ("text", "delta", "content"):
+            if isinstance(obj.get(key), str):
+                return obj[key], None
+    if ev_type in {"assistant", "message"}:
+        msg = obj.get("message") if isinstance(obj.get("message"), dict) else obj
+        if msg.get("role", "assistant") == "assistant":
+            content = msg.get("content")
+            full = ""
+            if isinstance(content, str):
+                full = content
+            elif isinstance(content, list):
+                full = "".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text" and isinstance(b.get("text"), str))
+            if full:
+                if full.startswith(accumulated):
+                    return full[len(accumulated):], None
+                if accumulated.endswith(full):
+                    return "", None
+                return full, None
+    if ev_type == "result":
+        res = obj.get("result")
+        if isinstance(res, str) and res:
+            delta = res[len(accumulated):] if res.startswith(accumulated) else ("" if accumulated else res)
+            return delta, res
+    if isinstance(obj.get("delta"), str):
+        return obj["delta"], None
+    return "", None
+
+
 def generate(engine, binary, prompt, model=""):
     env = child_environment()
     with tempfile.TemporaryDirectory(prefix="loki-writing-") as work:
         result_file = Path(work) / "reply.md"
-        if engine == "codex":
-            args = ["exec", "--skip-git-repo-check", "--sandbox", "read-only", "-o", str(result_file)]
-            if model:
-                args += ["--model", model]
-            args += ["-"]
-        elif engine == "agy":
-            args = ["-p", prompt, "--print-timeout", "5m"]
-            if model:
-                args += ["--model", model]
-        else:
-            # This installed CLI has no per-message --model. Never change global settings silently.
-            if model:
-                current = json.loads(run_cli(binary, ["model", "current", "--json"], env))
-                if model != current.get("currentModel"):
-                    raise ValueError("当前 Cola CLI 不支持逐次指定模型；请使用客户端默认模型")
-            args = ["message", "--session", "writer-" + uuid.uuid4().hex, "--json", "--", prompt]
-            env["COLA_CLI_TIMEOUT_MS"] = "300000"
-        output = run_cli(binary, args, env, cwd=work,
-                         prompt=prompt if engine == "codex" else "", timeout=315)
+        args, stdin_text = _build_generate_cmd(engine, binary, prompt, model, env, result_file)
+        output = run_cli(binary, args, env, cwd=work, prompt=stdin_text, timeout=915)
         if engine == "codex":
             if not result_file.exists():
                 raise ValueError("Codex 成功退出但未生成回复文件")
@@ -260,6 +363,262 @@ def generate(engine, binary, prompt, model=""):
                 raise ValueError("Cola 实际模型与所选模型不一致，请重新检测客户端默认模型")
             return str(reply.get("response") or "").strip()
         return output.strip()
+
+
+def _open_live_draft(engine):
+    try:
+        draft_dir = ROOT / "_ai-drafts"
+        draft_dir.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        draft_path = draft_dir / f"{stamp}-{engine}-{uuid.uuid4().hex[:6]}.md"
+        return draft_path, draft_path.open("w", encoding="utf-8")
+    except OSError:
+        return None, None
+
+
+def stream_generate(engine, binary, prompt, model="", emit=None, timeout=1800):
+    """Run CLI generation with live stdout/stream-json streaming, live disk persistence, and partial-output preservation."""
+    emit = emit or (lambda event, payload: None)
+    env = child_environment()
+    start = time.monotonic()
+    draft_path, draft_fp = _open_live_draft(engine)
+    with tempfile.TemporaryDirectory(prefix="loki-writing-") as work:
+        result_file = Path(work) / "reply.md"
+        args, stdin_text = _build_generate_cmd(engine, binary, prompt, model, env, result_file, streaming=True)
+        tracked = getattr(GEN_LOCAL, "active", False)
+        if tracked:
+            with ACTIVE_LOCK:
+                if ACTIVE_GEN["cancelled"]:
+                    raise ValueError("已停止本次生成")
+        proc = subprocess.Popen([binary, *args], cwd=work, env=env, shell=False,
+                                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if tracked:
+            with ACTIVE_LOCK:
+                if ACTIVE_GEN["cancelled"]:
+                    proc.terminate()
+                    proc.wait()
+                    raise ValueError("已停止本次生成")
+                ACTIVE_GEN["proc"] = proc
+        try:
+            if stdin_text:
+                proc.stdin.write(stdin_text.encode("utf-8"))
+            proc.stdin.close()
+        except OSError:
+            pass
+
+        import codecs
+        out_dec = codecs.getincrementaldecoder("utf-8")("replace")
+        err_dec = codecs.getincrementaldecoder("utf-8")("replace")
+        stdout_parts, stderr_parts = [], []
+        agy_line_buf = ""
+        agy_text_parts = []
+        agy_final_result = None
+        agy_seen_json = False
+        selector = selectors.DefaultSelector()
+        selector.register(proc.stdout, selectors.EVENT_READ, "out")
+        selector.register(proc.stderr, selectors.EVENT_READ, "err")
+        deadline = start + timeout
+        last_tick = start
+        last_output_at = None
+        timed_out = False
+        idle_finished = False
+        total_chars = 0
+
+        def write_draft(text_chunk):
+            if draft_fp and text_chunk:
+                try:
+                    draft_fp.write(text_chunk)
+                    draft_fp.flush()
+                except OSError:
+                    pass
+
+        def handle_agy_line(line):
+            nonlocal agy_final_result, agy_seen_json, total_chars, last_output_at
+            stripped = line.strip()
+            if not stripped:
+                return
+            if stripped.startswith("{") and stripped.endswith("}"):
+                try:
+                    obj = json.loads(stripped)
+                    if isinstance(obj, dict):
+                        agy_seen_json = True
+                        accumulated = "".join(agy_text_parts)
+                        delta, final_res = _extract_stream_json_text(obj, accumulated)
+                        if final_res:
+                            agy_final_result = final_res
+                        if delta:
+                            agy_text_parts.append(delta)
+                            total_chars += len(delta)
+                            last_output_at = time.monotonic()
+                            write_draft(delta)
+                            emit("delta", {"text": delta, "elapsedMs": round((time.monotonic() - start) * 1000)})
+                        return
+                except json.JSONDecodeError:
+                    pass
+            if not agy_seen_json:
+                agy_text_parts.append(line)
+                total_chars += len(line)
+                last_output_at = time.monotonic()
+                write_draft(line)
+                emit("delta", {"text": line, "elapsedMs": round((time.monotonic() - start) * 1000)})
+
+        try:
+            while selector.get_map():
+                now = time.monotonic()
+                remaining = deadline - now
+                if remaining <= 0:
+                    timed_out = True
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+                        proc.wait(timeout=2)
+                    break
+                if engine == "agy" and total_chars > 0 and last_output_at is not None and (now - last_output_at) >= AGY_POST_OUTPUT_IDLE_SECS:
+                    idle_finished = True
+                    proc.terminate()
+                    try:
+                        proc.wait(timeout=2)
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+                        proc.wait(timeout=2)
+                    break
+                events = selector.select(min(1.5, remaining))
+                if not events:
+                    now = time.monotonic()
+                    if engine == "agy" and total_chars > 0 and last_output_at is not None and (now - last_output_at) >= AGY_POST_OUTPUT_IDLE_SECS:
+                        idle_finished = True
+                        proc.terminate()
+                        try:
+                            proc.wait(timeout=2)
+                        except subprocess.TimeoutExpired:
+                            proc.kill()
+                            proc.wait(timeout=2)
+                        break
+                    if now - last_tick >= 1.5:
+                        last_tick = now
+                        emit("status", {"elapsedMs": round((now - start) * 1000), "chars": total_chars})
+                    continue
+                for key, _ in events:
+                    raw = os.read(key.fd, 4096)
+                    if not raw:
+                        selector.unregister(key.fileobj)
+                        continue
+                    if key.data == "out":
+                        chunk = out_dec.decode(raw, False)
+                        if chunk:
+                            stdout_parts.append(chunk)
+                            last_output_at = time.monotonic()
+                            if engine == "agy":
+                                agy_line_buf += chunk
+                                while "\n" in agy_line_buf:
+                                    line, agy_line_buf = agy_line_buf.split("\n", 1)
+                                    handle_agy_line(line + "\n")
+                            else:
+                                total_chars += len(chunk)
+                                write_draft(chunk)
+                    else:
+                        chunk = err_dec.decode(raw, False)
+                        if chunk:
+                            stderr_parts.append(chunk)
+            tail_out = out_dec.decode(b"", True)
+            if tail_out:
+                stdout_parts.append(tail_out)
+                if engine == "agy":
+                    agy_line_buf += tail_out
+                else:
+                    total_chars += len(tail_out)
+                    write_draft(tail_out)
+            if engine == "agy" and agy_line_buf:
+                handle_agy_line(agy_line_buf)
+                agy_line_buf = ""
+            tail_err = err_dec.decode(b"", True)
+            if tail_err:
+                stderr_parts.append(tail_err)
+            if not timed_out and not idle_finished:
+                proc.wait(timeout=5)
+        finally:
+            selector.close()
+            proc.stdout.close()
+            proc.stderr.close()
+            if draft_fp:
+                try:
+                    draft_fp.close()
+                except OSError:
+                    pass
+            if tracked:
+                with ACTIVE_LOCK:
+                    if ACTIVE_GEN["proc"] is proc:
+                        ACTIVE_GEN["proc"] = None
+
+        stdout_text = "".join(stdout_parts).strip()
+        agy_text = (agy_final_result or "".join(agy_text_parts)).strip() if engine == "agy" else ""
+        stderr_text = "".join(stderr_parts)
+        cancelled = False
+        if tracked:
+            with ACTIVE_LOCK:
+                cancelled = bool(ACTIVE_GEN["cancelled"])
+
+        partial_reason = ""
+        if cancelled:
+            partial_reason = "已手动停止，已保留已生成的内容"
+        elif timed_out:
+            partial_reason = "生成已达超时上限，已保留已生成的内容"
+        elif idle_finished:
+            partial_reason = ""
+        elif proc.returncode != 0:
+            detail = cli_detail(stderr_text, stdout_text)
+            has_agy_partial = engine == "agy" and bool(agy_text or (not agy_seen_json and stdout_text))
+            if has_agy_partial and (proc.returncode == 3 or "partial" in detail.lower() or "timeout" in detail.lower()):
+                partial_reason = f"Antigravity 超时截断（已保留已生成的内容）：{detail}"
+            else:
+                raise ValueError(f"{Path(binary).name} 退出码 {proc.returncode}：{detail or '无错误输出'}")
+
+        draft_rel = f"_ai-drafts/{draft_path.name}" if draft_path else ""
+        if partial_reason:
+            partial_text = ""
+            if engine == "agy":
+                partial_text = agy_text or (stdout_text if not agy_seen_json else "")
+            elif engine == "codex" and result_file.exists():
+                partial_text = result_file.read_text(encoding="utf-8").strip()
+            if not partial_text and engine != "agy":
+                partial_text = stdout_text
+            if partial_text:
+                if draft_path:
+                    try:
+                        draft_path.write_text(partial_text, encoding="utf-8")
+                    except OSError:
+                        pass
+                return {"text": partial_text, "partial": True, "warning": partial_reason, "draftFile": draft_rel, "durationMs": round((time.monotonic() - start) * 1000)}
+            if draft_path:
+                draft_path.unlink(missing_ok=True)
+            raise ValueError(partial_reason if not timed_out else "CLI 生成超时且尚未产生正文")
+
+        if engine == "codex":
+            if not result_file.exists():
+                raise ValueError("Codex 成功退出但未生成回复文件")
+            final_text = result_file.read_text(encoding="utf-8").strip()
+        elif engine == "cola":
+            reply = json.loads(stdout_text)
+            if not isinstance(reply, dict) or reply.get("timedOut"):
+                raise ValueError("Cola 未完成生成")
+            if model and reply.get("model") != model:
+                raise ValueError("Cola 实际模型与所选模型不一致，请重新检测客户端默认模型")
+            final_text = str(reply.get("response") or "").strip()
+        else:
+            final_text = agy_text or (stdout_text if not agy_seen_json else "")
+
+        if not final_text:
+            if draft_path:
+                draft_path.unlink(missing_ok=True)
+            raise ValueError("CLI 未返回正文")
+        if draft_path:
+            try:
+                draft_path.write_text(final_text, encoding="utf-8")
+            except OSError:
+                pass
+        return {"text": final_text, "partial": False, "warning": "", "draftFile": draft_rel, "durationMs": round((time.monotonic() - start) * 1000)}
 
 class Handler(SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -353,15 +712,10 @@ class Handler(SimpleHTTPRequestHandler):
             return
         return super().send_head()
 
-    def do_POST(self):
-        if not self.allowed():
-            return
-        if self.library_api("POST"):
-            return
-        if urlsplit(self.path).path != "/api/generate":
-            return self.reply(404, {"ok": False, "error": "接口不存在"})
+    def parse_generate_request(self):
         if self.headers.get_content_type() != "application/json":
-            return self.reply(415, {"ok": False, "error": "需要 JSON"})
+            self.reply(415, {"ok": False, "error": "需要 JSON"})
+            return None
         try:
             size = int(self.headers.get("Content-Length", "0"))
             if not 0 < size <= LIMIT:
@@ -370,20 +724,70 @@ class Handler(SimpleHTTPRequestHandler):
             if not isinstance(data, dict):
                 raise ValueError
             if self.headers.get("Origin") == "null" and data.get("fileCode") != FILE_CODE:
-                return self.reply(403, {"ok": False, "error": "本地连接码不正确"})
+                self.reply(403, {"ok": False, "error": "本地连接码不正确"})
+                return None
             engine, prompt = data["engine"], data["prompt"]
             model = data.get("model", "")
             if not isinstance(model, str) or (model and not re.fullmatch(r"[A-Za-z0-9._:/-]+", model)):
-                return self.reply(400, {"ok": False, "error": "模型 ID 格式无效"})
+                self.reply(400, {"ok": False, "error": "模型 ID 格式无效"})
+                return None
             if engine not in ENGINES or not isinstance(prompt, str) or not prompt.strip() or "\0" in prompt:
                 raise ValueError
+            return engine, prompt, model
         except (ValueError, KeyError, TypeError):
-            return self.reply(400, {"ok": False, "error": "请检查引擎和提示词，JSON 上限为 1 MiB"})
+            self.reply(400, {"ok": False, "error": "请检查引擎和提示词，JSON 上限为 4 MiB"})
+            return None
+
+    def do_POST(self):
+        if not self.allowed():
+            return
+        if self.library_api("POST"):
+            return
+        path = urlsplit(self.path).path
+        if path == "/api/generate/cancel":
+            stopped = cancel_active_generation()
+            return self.reply(200, {"ok": True, "cancelled": stopped})
+        if path not in {"/api/generate", "/api/generate/stream"}:
+            return self.reply(404, {"ok": False, "error": "接口不存在"})
+        parsed = self.parse_generate_request()
+        if not parsed:
+            return
+        engine, prompt, model = parsed
         binary = executable(engine)
         if not binary or not SLOT.acquire(blocking=False):
             return self.reply(503, {"ok": False, "error": "引擎未安装或正在生成"})
         start = time.monotonic()
+        with ACTIVE_LOCK:
+            ACTIVE_GEN["proc"] = None
+            ACTIVE_GEN["cancelled"] = False
+        GEN_LOCAL.active = True
         try:
+            if path == "/api/generate/stream":
+                self.send_response(200)
+                self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+                self.send_header("X-Accel-Buffering", "no")
+                self.send_header("Connection", "close")
+                self.end_headers()
+                def emit(event, payload):
+                    frame = f"event: {event}\ndata: {json.dumps(payload, ensure_ascii=False)}\n\n".encode("utf-8")
+                    try:
+                        self.wfile.write(frame)
+                        self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError, OSError):
+                        cancel_active_generation()
+                        raise
+                try:
+                    result = stream_generate(engine, binary, prompt, model, emit=emit)
+                    emit("done", {"ok": True, "engine": engine, **result})
+                except (BrokenPipeError, ConnectionResetError):
+                    cancel_active_generation()
+                except (ValueError, OSError) as error:
+                    print(f"[generate-stream:{engine}] {error}", flush=True)
+                    try:
+                        emit("error", {"ok": False, "error": str(error)})
+                    except OSError:
+                        pass
+                return
             text = generate(engine, binary, prompt, model)
             if not text:
                 raise ValueError("CLI 未返回正文")
@@ -395,6 +799,10 @@ class Handler(SimpleHTTPRequestHandler):
             print(f"[generate:{engine}] {error}", flush=True)
             self.reply(502, {"ok": False, "error": str(error)})
         finally:
+            GEN_LOCAL.active = False
+            with ACTIVE_LOCK:
+                ACTIVE_GEN["proc"] = None
+                ACTIVE_GEN["cancelled"] = False
             SLOT.release()
 
 

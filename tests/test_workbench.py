@@ -102,6 +102,105 @@ class CliTests(unittest.TestCase):
             catalog = bridge.engine_catalog(force=True)
         self.assertTrue(all(x["models"] == [] and x["defaultModel"] == "" and "offline" in x["modelError"] for x in catalog))
 
+    def test_cancel_active_generation_terminates_running_cli(self):
+        outcome = {}
+        def worker():
+            with bridge.ACTIVE_LOCK:
+                bridge.ACTIVE_GEN["proc"] = None
+                bridge.ACTIVE_GEN["cancelled"] = False
+            bridge.GEN_LOCAL.active = True
+            try:
+                bridge.run_cli(sys.executable, ["-c", "import time; time.sleep(30)"], os.environ.copy(), timeout=30)
+            except ValueError as err:
+                outcome["error"] = str(err)
+            finally:
+                bridge.GEN_LOCAL.active = False
+                with bridge.ACTIVE_LOCK:
+                    bridge.ACTIVE_GEN["proc"] = None
+                    bridge.ACTIVE_GEN["cancelled"] = False
+        thread = threading.Thread(target=worker)
+        thread.start()
+        deadline = bridge.time.monotonic() + 3
+        while bridge.time.monotonic() < deadline:
+            with bridge.ACTIVE_LOCK:
+                if bridge.ACTIVE_GEN["proc"] is not None:
+                    break
+            bridge.time.sleep(0.02)
+        self.assertTrue(bridge.cancel_active_generation())
+        thread.join(timeout=3)
+        self.assertFalse(thread.is_alive())
+        self.assertIn("已停止", outcome.get("error", ""))
+
+    def test_stream_generate_emits_live_deltas_and_preserves_partial_on_timeout(self):
+        events = []
+        script = (
+            "import sys, time\n"
+            "sys.stdout.write('第一段正文。\\n'); sys.stdout.flush()\n"
+            "time.sleep(0.05)\n"
+            "sys.stdout.write('第二段正文。\\n'); sys.stdout.flush()\n"
+            "time.sleep(5)\n"
+        )
+        with patch.object(bridge, "child_environment", return_value=os.environ.copy()), \
+             patch.object(bridge, "_build_generate_cmd", return_value=(["-c", script], "")):
+            res = bridge.stream_generate("agy", sys.executable, "test", emit=lambda ev, data: events.append((ev, data)), timeout=0.35)
+        self.assertTrue(res["partial"])
+        self.assertIn("第一段正文", res["text"])
+        self.assertIn("第二段正文", res["text"])
+        deltas = "".join(d["text"] for ev, d in events if ev == "delta")
+        self.assertIn("第一段正文", deltas)
+        self.assertIn("第二段正文", deltas)
+
+    def test_stream_generate_parses_agy_stream_json_events_live(self):
+        events = []
+        script = (
+            "import json, sys, time\n"
+            "for obj in [\n"
+            "  {'type':'stream_event','event':{'type':'content_block_delta','delta':{'type':'text_delta','text':'雨夜，'}}},\n"
+            "  {'type':'stream_event','event':{'type':'content_block_delta','delta':{'type':'text_delta','text':'钟表停了。'}}},\n"
+            "  {'type':'result','result':'雨夜，钟表停了。'}\n"
+            "]:\n"
+            "  sys.stdout.write(json.dumps(obj, ensure_ascii=False) + '\\n'); sys.stdout.flush(); time.sleep(0.02)\n"
+        )
+        with patch.object(bridge, "child_environment", return_value=os.environ.copy()), \
+             patch.object(bridge, "_build_generate_cmd", return_value=(["-c", script], "")):
+            res = bridge.stream_generate("agy", sys.executable, "test", emit=lambda ev, data: events.append((ev, data)), timeout=5)
+        self.assertFalse(res["partial"])
+        self.assertEqual(res["text"], "雨夜，钟表停了。")
+        deltas = [d["text"] for ev, d in events if ev == "delta"]
+        self.assertEqual(deltas, ["雨夜，", "钟表停了。"])
+
+    def test_oversized_agy_prompt_spills_to_file_avoiding_arg_max(self):
+        with tempfile.TemporaryDirectory() as work:
+            result_file = Path(work) / "reply.md"
+            huge_prompt = "长风格卡内容。" * 20000  # > 100 KB UTF-8
+            args, stdin_text = bridge._build_generate_cmd("agy", "agy", huge_prompt, "m1", {}, result_file, streaming=True)
+            self.assertEqual(stdin_text, "")
+            self.assertIn("--add-dir", args)
+            self.assertNotIn("--output-format", args)
+            self.assertLess(len(args[args.index("-p") + 1].encode("utf-8")), 1024)
+            prompt_file = Path(work) / "prompt.md"
+            self.assertTrue(prompt_file.is_file())
+            self.assertEqual(prompt_file.read_text(encoding="utf-8"), huge_prompt)
+
+    def test_agy_post_output_idle_completes_without_timeout_error(self):
+        events = []
+        script = (
+            "import sys, time\n"
+            "sys.stdout.write('完整正文第一段。\\n完整正文第二段。\\n'); sys.stdout.flush()\n"
+            "time.sleep(10)\n"
+        )
+        with patch.object(bridge, "child_environment", return_value=os.environ.copy()), \
+             patch.object(bridge, "_build_generate_cmd", return_value=(["-c", script], "")), \
+             patch.object(bridge, "AGY_POST_OUTPUT_IDLE_SECS", 0.25):
+            res = bridge.stream_generate("agy", sys.executable, "test", emit=lambda ev, data: events.append((ev, data)), timeout=10)
+        self.assertFalse(res["partial"])
+        self.assertEqual(res["text"], "完整正文第一段。\n完整正文第二段。")
+        self.assertEqual(res["warning"], "")
+
+
+
+
+
 class HttpTests(unittest.TestCase):
     def setUp(self):
         self.work = tempfile.TemporaryDirectory()
